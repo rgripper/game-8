@@ -30,6 +30,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
     ],
     "fallbackPool": [
       [
+        "@types/jest",
+        "npm:26.0.10"
+      ],
+      [
         "@types/node",
         "npm:14.0.27"
       ],
@@ -65,6 +69,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         [null, {
           "packageLocation": "./",
           "packageDependencies": [
+            ["@types/jest", "npm:26.0.10"],
             ["@types/node", "npm:14.0.27"],
             ["@types/ws", "npm:7.2.6"],
             ["jest", "npm:26.4.0"],
@@ -3868,6 +3873,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./",
           "packageDependencies": [
             ["net", "workspace:."],
+            ["@types/jest", "npm:26.0.10"],
             ["@types/node", "npm:14.0.27"],
             ["@types/ws", "npm:7.2.6"],
             ["jest", "npm:26.4.0"],

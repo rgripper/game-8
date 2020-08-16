@@ -1,6 +1,6 @@
 import { Observable, firstValueFrom, from, fromEvent, throwError } from 'rxjs';
 import { AuthorizationPrefix, AuthorizationSuccessful, ReadyForFrames } from './control-commands';
-import { timeoutWith, tap, mergeMap, first, map } from 'rxjs/dist/types/operators';
+import { timeout, tap, mergeMap, first, map } from 'rxjs/operators';
 import { MessageEvent, WebSocketLike } from './base';
 import WebSocket from 'ws';
 
@@ -16,12 +16,15 @@ export async function connectToServer<TCommand, TFrame>(
 ): Promise<SimpleClient<TCommand, TFrame>> {
     return await firstValueFrom(
         (socket.isOpen() ? from([true]) : fromEvent(socket, 'open')).pipe(
-            timeoutWith(1000, throwError(new Error('Timed out waiting for socket to open'))),
+            timeout({ each: 1000, with: () => throwError(new Error('Timed out waiting for socket to open')) }),
             tap<WebSocket>(() => socket.send(AuthorizationPrefix + authToken)),
             mergeMap(() =>
                 fromEvent<MessageEvent>(socket, 'message').pipe(
                     first(),
-                    timeoutWith(1000, throwError(new Error('Timed out waiting for an authorization message'))),
+                    timeout({
+                        each: 1000,
+                        with: () => throwError(new Error('Timed out waiting for an authorization message')),
+                    }),
                     tap(message => {
                         if (message.data !== AuthorizationSuccessful) {
                             throw new Error(

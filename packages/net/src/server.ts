@@ -1,8 +1,7 @@
 import { Observable, merge, fromEvent, firstValueFrom } from 'rxjs';
 import { AuthorizationPrefix, ReadyForFrames, AuthorizationSuccessful } from './control-commands';
-import { NodeCompatibleEventEmitter, HasEventTargetAddRemove } from 'rxjs/dist/types/internal/observable/fromEvent';
 import { map, mergeMap, scan, tap, first, timeout } from 'rxjs/operators';
-import { MessageEvent, WebSocketLike } from './base';
+import { HasEventTargetAddRemove, NodeCompatibleEventEmitter, MessageEvent, WebSocketLike } from './base';
 
 export type SimpleServer<TCommand, TFrame> = {
     commands: Observable<TCommand>;
