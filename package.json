@@ -5,8 +5,9 @@
     "packages/net"
   ],
   "scripts": {
-    "install-all": "yarn workspaces foreach install",
-    "build-all": "yarn workspace net build"
+    "install:all": "yarn workspaces foreach install",
+    "net:build": "yarn workspace net build",
+    "sim:build": "wasm-pack build packages/sim"
   },
   "devDependencies": {
     "@types/jest": "^26.0.10",
