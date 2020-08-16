@@ -1,7 +1,8 @@
 import { Observable, firstValueFrom, from, fromEvent, throwError } from 'rxjs';
 import { AuthorizationPrefix, AuthorizationSuccessful, ReadyForFrames } from './control-commands';
 import { timeoutWith, tap, mergeMap, first, map } from 'rxjs/dist/types/operators';
-import { WebSocketLike } from './base';
+import { MessageEvent, WebSocketLike } from './base';
+import WebSocket from 'ws';
 
 export type SimpleClient<TCommand, TFrame> = {
     frames: Observable<TFrame>;
