@@ -1,6 +1,6 @@
 
-**/.yarn/*
-!**/.yarn/releases
-!**/.yarn/plugins
-!**/.yarn/sdks
-**/.pnp.js
+/.yarn/*
+!/.yarn/releases
+!/.yarn/plugins
+!/.yarn/sdks
+/.pnp.js

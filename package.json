@@ -4,6 +4,10 @@
   "workspaces": [
     "packages/net"
   ],
+  "scripts": {
+    "install-all": "yarn workspaces foreach install",
+    "build-all": "yarn workspace net build"
+  },
   "devDependencies": {
     "@types/jest": "^26.0.10",
     "eslint": "^7.7.0",
