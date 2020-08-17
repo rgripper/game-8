@@ -1,7 +1,6 @@
 import { lastValueFrom } from 'rxjs';
 import WebSocket from 'ws';
 import { createSigintObservable, createSimpleServer, waitForClients } from 'sim-net';
-import { exit } from 'process';
 
 async function main() {
     const server = new WebSocket.Server({ port: 3888 });
@@ -10,4 +9,4 @@ async function main() {
     const simpleServer = createSimpleServer<string, { value: number }>(clients);
 }
 
-main().catch(() => exit(1));
+main().catch(() => process.exit(1));

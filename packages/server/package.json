@@ -8,7 +8,8 @@
         "jest": "jest",
         "test": "jest src --watch",
         "clear": "rimraf dist",
-        "build": "yarn clear && yarn webpack --mode=production",
+        "build:webpack": "yarn clear && yarn webpack --mode=production",
+        "build": "yarn clear && yarn tsc --outDir dist",
         "start": "yarn node dist/index.js"
     },
     "dependencies": {

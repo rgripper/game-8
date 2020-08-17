@@ -1,32 +1,36 @@
 const path = require('path');
+const PnpWebpackPlugin = require('pnp-webpack-plugin');
 //const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 module.exports = {
-  mode: 'development',
   entry: './src/index.ts',
   module: {
     rules: [
       {
-        test: /\.tsx?$/,
-        use: 'ts-loader',
-        exclude: /node_modules/,
+        test: /\.ts?$/,
+        loader: 'ts-loader',
+        options: PnpWebpackPlugin.tsLoaderOptions()
       }
     ]
   },
   resolve: {
+    plugins: [PnpWebpackPlugin,],
     extensions: ['.ts', '.js', '.wasm']
   },
   devtool: 'inline-source-map',
   devServer: {
     open: true,
-    contentBase: './build',
+    contentBase: './dist',
     historyApiFallback: true
+  },
+  resolveLoader: {
+    plugins: [PnpWebpackPlugin.moduleLoader(module),],
   },
   plugins: [
     //new CleanWebpackPlugin(),
   ],
   output: {
     filename: 'bundle.js',
-    path: path.resolve(__dirname, 'build')
+    path: path.resolve(__dirname, 'dist')
   }
 };
