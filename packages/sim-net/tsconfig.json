@@ -2,8 +2,7 @@
     "extends": "../../tsconfig.json",
     "compilerOptions": {
         "declaration": true,
-        "module": "ESNext",
-        "lib": ["esnext"]
+        "lib": ["ESNext"]
     },
     "exclude": ["src/**/*.test.ts"]
 }
