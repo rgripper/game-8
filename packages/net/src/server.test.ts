@@ -1,8 +1,7 @@
-import { EMPTY, lastValueFrom, NEVER, throwError } from 'rxjs';
+import { lastValueFrom, NEVER, throwError } from 'rxjs';
 import { AuthorizationPrefix, ReadyForFrames } from './control-commands';
-import { createSigintObservable, createSimpleServer, waitForClients } from './server';
+import { createSimpleServer, waitForClients } from './server';
 import { EventEmitter } from 'events';
-import { timeout } from 'rxjs/dist/types/operators';
 
 const createFakeClient = () => {
     // TODO: make return type obey WebSocketLike
