@@ -3702,6 +3702,7 @@ fsevents@^2.1.2:
     "@types/node": ^14.0.27
     "@types/ws": ^7.2.6
     jest: ^26.4.0
+    rimraf: ^3.0.2
     rxjs: ^7.0.0-beta.4
     ts-jest: ^26.2.0
     typescript: rc
@@ -4426,7 +4427,7 @@ fsevents@^2.1.2:
   languageName: node
   linkType: hard
 
-"rimraf@npm:^3.0.0":
+"rimraf@npm:^3.0.0, rimraf@npm:^3.0.2":
   version: 3.0.2
   resolution: "rimraf@npm:3.0.2"
   dependencies:
@@ -4530,6 +4531,23 @@ fsevents@^2.1.2:
   checksum: f0d155c06a67cc7e500c92d929339f1c6efd4ce9fe398aee6acc00a2333489cca0f5b4e76ee7292beba237fcca4b5a3d4a6153471f105f56299801bdab37289f
   languageName: node
   linkType: hard
+
+"server@workspace:packages/server":
+  version: 0.0.0-use.local
+  resolution: "server@workspace:packages/server"
+  dependencies:
+    "@types/jest": ^26.0.10
+    "@types/node": ^14.0.27
+    "@types/ws": ^7.2.6
+    jest: ^26.4.0
+    net: "workspace:packages/net"
+    rimraf: ^3.0.2
+    rxjs: ^7.0.0-beta.4
+    ts-jest: ^26.2.0
+    typescript: rc
+    ws: ^7.3.1
+  languageName: unknown
+  linkType: soft
 
 "set-blocking@npm:^2.0.0, set-blocking@npm:~2.0.0":
   version: 2.0.0

@@ -1,7 +1,8 @@
-import { lastValueFrom } from 'rxjs';
+import { EMPTY, lastValueFrom, NEVER, throwError } from 'rxjs';
 import { AuthorizationPrefix, ReadyForFrames } from './control-commands';
-import { createSimpleServer, waitForClients } from './server';
+import { createSigintObservable, createSimpleServer, waitForClients } from './server';
 import { EventEmitter } from 'events';
+import { timeout } from 'rxjs/dist/types/operators';
 
 const createFakeClient = () => {
     // TODO: make return type obey WebSocketLike
@@ -26,12 +27,19 @@ describe('server', () => {
 
     xit('times out if socket did not auth in time', () => {});
 
-    xit('times out when socket count is not reached in time', () => {});
+    it('terminates if socket count is not reached in time', async () => {
+        const serverEmitter = new EventEmitter();
+        const server = createFakeServer(serverEmitter);
+        const terminator = throwError('Terminated!');
+        const waitForClientsPromise = lastValueFrom(waitForClients(server, x => x, 3, 1000, terminator));
+        //expect(waitForClientsPromise).toBe(55);
+        await expect(waitForClientsPromise).rejects.toBe('Terminated!');
+    });
 
     it('returns all sockets when count is reached', async () => {
         const serverEmitter = new EventEmitter();
         const server = createFakeServer(serverEmitter);
-        const waitForClientsPromise = lastValueFrom(waitForClients(server, x => x, 3, 1000, 1000));
+        const waitForClientsPromise = lastValueFrom(waitForClients(server, x => x, 3, 1000, NEVER));
 
         const client1 = createFakeClient();
         serverEmitter.emit('connection', client1);

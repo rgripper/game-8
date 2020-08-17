@@ -25,13 +25,18 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
       {
         "name": "net",
         "reference": "workspace:packages/net"
+      },
+      {
+        "name": "server",
+        "reference": "workspace:packages/server"
       }
     ],
     "enableTopLevelFallback": true,
     "ignorePatternData": "(^(?:\\.yarn\\/sdks(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)|$))$)",
     "fallbackExclusionList": [
       ["game-8", ["workspace:."]],
-      ["net", ["workspace:packages/net"]]
+      ["net", ["workspace:packages/net"]],
+      ["server", ["workspace:packages/server"]]
     ],
     "fallbackPool": [
       [
@@ -4170,6 +4175,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/node", "npm:14.0.27"],
             ["@types/ws", "npm:7.2.6"],
             ["jest", "npm:26.4.0"],
+            ["rimraf", "npm:3.0.2"],
             ["rxjs", "npm:7.0.0-beta.4"],
             ["ts-jest", "virtual:c3e218c6779e448e9272e910eb6b39398d0c68fbeac2cbc1930bb0d7bb844404f8cc72548f39838a682fe50a79574e320348e740e9e457d7db61609dbcf5416a#npm:26.2.0"],
             ["typescript", "patch:typescript@npm%3A4.0.1-rc#builtin<compat/typescript>::version=4.0.1-rc&hash=5b02a2"],
@@ -5092,6 +5098,25 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["semver", "npm:7.3.2"]
           ],
           "linkType": "HARD",
+        }]
+      ]],
+      ["server", [
+        ["workspace:packages/server", {
+          "packageLocation": "./packages/server/",
+          "packageDependencies": [
+            ["server", "workspace:packages/server"],
+            ["@types/jest", "npm:26.0.10"],
+            ["@types/node", "npm:14.0.27"],
+            ["@types/ws", "npm:7.2.6"],
+            ["jest", "npm:26.4.0"],
+            ["net", "workspace:packages/net"],
+            ["rimraf", "npm:3.0.2"],
+            ["rxjs", "npm:7.0.0-beta.4"],
+            ["ts-jest", "virtual:c3e218c6779e448e9272e910eb6b39398d0c68fbeac2cbc1930bb0d7bb844404f8cc72548f39838a682fe50a79574e320348e740e9e457d7db61609dbcf5416a#npm:26.2.0"],
+            ["typescript", "patch:typescript@npm%3A4.0.1-rc#builtin<compat/typescript>::version=4.0.1-rc&hash=5b02a2"],
+            ["ws", "virtual:04143de84d48e0290c46a8cdca349b95e44029737189afb4c6180c1751ed718bcc554eca60ffa788bfedeef0454a95b64b7aac48aefd7ae297b6105a5c813d5b#npm:7.3.1"]
+          ],
+          "linkType": "SOFT",
         }]
       ]],
       ["set-blocking", [

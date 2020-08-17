@@ -2,11 +2,13 @@
   "name": "game-8",
   "license": "MIT",
   "workspaces": [
-    "packages/net"
+    "packages/net",
+    "packages/server"
   ],
   "scripts": {
     "install:all": "yarn workspaces foreach install",
     "net:build": "yarn workspace net build",
+    "server:build": "yarn workspace server build",
     "sim:build": "wasm-pack build packages/sim"
   },
   "devDependencies": {

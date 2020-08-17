@@ -1,15 +1,16 @@
 {
-    "name": "net",
+    "name": "server",
     "version": "0.0.1",
-    "main": "lib/index.js",
+    "main": "dist/index.js",
     "license": "MIT",
     "scripts": {
         "jest": "jest",
         "test": "jest src --watch",
-        "clear": "rimraf lib",
-        "build": "yarn clear && yarn tsc --outDir lib"
+        "clear": "rimraf dist",
+        "build": "yarn clear && yarn tsc --outDir dist"
     },
     "dependencies": {
+        "net": "workspace:packages/net",
         "rxjs": "^7.0.0-beta.4",
         "ws": "^7.3.1"
     },

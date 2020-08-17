@@ -1,4 +1,4 @@
-import { Observable, merge, fromEvent, firstValueFrom } from 'rxjs';
+import { Observable, merge, fromEvent, firstValueFrom, fromEventPattern, throwError } from 'rxjs';
 import { AuthorizationPrefix, ReadyForFrames, AuthorizationSuccessful } from './control-commands';
 import { map, mergeMap, scan, tap, first, timeout } from 'rxjs/operators';
 import { HasEventTargetAddRemove, NodeCompatibleEventEmitter, MessageEvent, WebSocketLike } from './base';
@@ -21,23 +21,31 @@ export function createSimpleServer<TCommand, TFrame>(
     };
 }
 
+export function createSigintObservable(): Observable<never> {
+    return fromEventPattern(
+        x => process.on('SIGINT', x),
+        x => process.off('SIGINT', x),
+    ).pipe(mergeMap(() => throwError(new Error('SIGINT'))));
+}
+
 /**
  * Completes when all sockets have been returned.
+ * @param cancellationObservable Must throw an error
  */
 export function waitForClients<TClient extends WebSocketLike, TServer extends ServerLike>(
     server: TServer,
     getClientIdByToken: (authToken: string) => string,
     expectedClientCount: number,
     authTimeout: number,
-    waitForClientsTimeout: number,
+    cancellationObservable: Observable<never>,
 ): Observable<SocketAndId<TClient>[]> {
-    return fromEvent<TClient | [TClient]>(server, 'connection').pipe(
+    return merge(cancellationObservable, fromEvent<TClient | [TClient]>(server, 'connection')).pipe(
         mergeMap(async args => {
             const socket = Array.isArray(args) ? args[0] : args;
             const id = await firstValueFrom(
-                fromEvent<MessageEvent>(socket, 'message').pipe(
+                merge(cancellationObservable, fromEvent<MessageEvent>(socket, 'message')).pipe(
                     scan(
-                        (negotiation, event) => {
+                        (negotiation, event: MessageEvent) => {
                             if (negotiation.state === SocketNegotiationState.Unauth) {
                                 const id = getAuthToken(event);
                                 if (id === null) throw new Error('Expected command to be Authorization');
@@ -67,7 +75,6 @@ export function waitForClients<TClient extends WebSocketLike, TServer extends Se
         }),
         scan((acc, socketAndId) => acc.concat(socketAndId), [] as SocketAndId<TClient>[]),
         first(socketsAndIds => socketsAndIds.length === expectedClientCount),
-        timeout(waitForClientsTimeout),
     );
 }
 
@@ -90,5 +97,3 @@ enum SocketNegotiationState {
 type SocketNegotiation = { state: SocketNegotiationState; id: null | string };
 
 type ServerLike = NodeCompatibleEventEmitter | HasEventTargetAddRemove<any>;
-
-// const clients = await lastValueFrom(waitForClients(server, x => x, clientCount, 200, 5000));

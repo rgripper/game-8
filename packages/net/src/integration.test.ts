@@ -1,7 +1,7 @@
 import WebSocket from 'ws';
 import { lastValueFrom } from 'rxjs';
 import { connectToServer } from './client';
-import { waitForClients } from './server';
+import { createSigintObservable, waitForClients } from './server';
 
 describe('real sockets', () => {
     it('connects and receives messages', async done => {
@@ -15,7 +15,9 @@ describe('real sockets', () => {
             isOpen: () => client.readyState === client.OPEN,
         };
 
-        const waitForClientsPromise = lastValueFrom(waitForClients(server, x => x, 1, 1000, 1000)).then();
+        const waitForClientsPromise = lastValueFrom(
+            waitForClients(server, x => x, 1, 1000, createSigintObservable()),
+        ).then();
 
         const authToken = 'authToken';
         const messageHandler = jest.fn();
