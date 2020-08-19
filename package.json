@@ -3,13 +3,16 @@
   "license": "MIT",
   "workspaces": [
     "packages/sim-net",
-    "packages/server"
+    "packages/server",
+    "packages/client"
   ],
   "scripts": {
+    "client:build": "yarn workspace client build",
+    "client:start": "yarn workspace client start",
     "install:all": "yarn workspaces foreach install",
-    "sim-net:build": "yarn workspace sim-net build",
     "server:build": "yarn workspace server build",
     "server:start": "yarn workspace server start",
+    "sim-net:build": "yarn workspace sim-net build",
     "sim:build": "wasm-pack build packages/sim"
   },
   "devDependencies": {

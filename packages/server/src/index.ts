@@ -6,6 +6,7 @@ async function main() {
     const server = new WebSocket.Server({ port: 3888 });
     console.log(`Server is running on ws://localhost:${3888}`);
     const clients = await lastValueFrom(waitForClients(server, x => x, 2, 200, createSigintObservable()));
+    console.log('clients were received', clients);
     const simpleServer = createSimpleServer<string, { value: number }>(clients);
 }
 

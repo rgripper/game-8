@@ -14,7 +14,7 @@ module.exports = {
     ]
   },
   resolve: {
-    plugins: [PnpWebpackPlugin,],
+    plugins: [PnpWebpackPlugin],
     extensions: ['.ts', '.js', '.wasm']
   },
   devtool: 'inline-source-map',
@@ -24,7 +24,7 @@ module.exports = {
     historyApiFallback: true
   },
   resolveLoader: {
-    plugins: [PnpWebpackPlugin.moduleLoader(module),],
+    plugins: [PnpWebpackPlugin.moduleLoader(module)],
   },
   plugins: [
     //new CleanWebpackPlugin(),
