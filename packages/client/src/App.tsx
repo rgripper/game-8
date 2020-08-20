@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import GameView from './game/GameView';
 import { Switch, Route, BrowserRouter, Redirect } from 'react-router-dom';
 import { AppContext } from './AppContext';
-import { URLSearchParams } from 'url';
 
 const params = new URLSearchParams(window.location.search);
 
