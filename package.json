@@ -19,6 +19,6 @@
     "@types/jest": "^26.0.10",
     "eslint": "^7.7.0",
     "prettier": "^2.0.5",
-    "typescript": "rc"
+    "typescript": "^4.0.2"
   }
 }

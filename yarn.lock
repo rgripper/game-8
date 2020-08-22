@@ -2660,7 +2660,7 @@ __metadata:
     rxjs: 7.0.0-beta.4
     sim-net: "workspace:packages/sim-net"
     ts-loader: ^8.0.2
-    typescript: rc
+    typescript: ^4.0.2
     webpack: ^4.44.1
     webpack-cli: ^3.3.12
     webpack-dev-server: ^3.11.0
@@ -4463,7 +4463,7 @@ fsevents@^1.2.7:
     "@types/jest": ^26.0.10
     eslint: ^7.7.0
     prettier: ^2.0.5
-    typescript: rc
+    typescript: ^4.0.2
   languageName: unknown
   linkType: soft
 
@@ -8616,7 +8616,7 @@ fsevents@^1.2.7:
     sim-net: "workspace:packages/sim-net"
     ts-jest: ^26.2.0
     ts-loader: ^8.0.2
-    typescript: rc
+    typescript: ^4.0.2
     webpack: ^4.44.1
     webpack-cli: ^3.3.12
     ws: ^7.3.1
@@ -8732,7 +8732,7 @@ fsevents@^1.2.7:
     rimraf: ^3.0.2
     rxjs: ^7.0.0-beta.4
     ts-jest: ^26.2.0
-    typescript: rc
+    typescript: ^4.0.2
     ws: ^7.3.1
   languageName: unknown
   linkType: soft
@@ -9673,23 +9673,23 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@rc#builtin<compat/typescript>":
-  version: 4.0.1-rc
-  resolution: "typescript@patch:typescript@npm%3A4.0.1-rc#builtin<compat/typescript>::version=4.0.1-rc&hash=5b02a2"
+typescript@^4.0.2:
+  version: 4.0.2
+  resolution: "typescript@npm:4.0.2"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: ed43c6e16cfb89412826318d954ba31c6101686b4c7244e85b43641d1b65f3ccfebccb563996b116e24e150d8953b50f313f3325153d38f8b71ec242c87f3ea9
+  checksum: cc0e7806eee7997a1b4b2990badacc4a8d089893ed0a377f35c9658e2ac392503cb340d0187203ed82e36e427dda94b0fb7107e44a71cca99efac86be26e16ee
   languageName: node
   linkType: hard
 
-typescript@rc:
-  version: 4.0.1-rc
-  resolution: "typescript@npm:4.0.1-rc"
+"typescript@patch:typescript@^4.0.2#builtin<compat/typescript>":
+  version: 4.0.2
+  resolution: "typescript@patch:typescript@npm%3A4.0.2#builtin<compat/typescript>::version=4.0.2&hash=5b02a2"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 0b8e31c99c00f1a06336e0ff71532f3d790205ae214d3b39f359dd7bcde9919920745397847f1d452279aa20f5fed2a6e7a436de32232f8696e2892f1bdac57c
+  checksum: b8b689ef994cce4fe59950d56ddfffce3c4bdda8edb85b72e752d4a6d27bf7df8a318e76ccde25cbe6e642058f2f4ccf47187db4b243bbc98278a2844db9461b
   languageName: node
   linkType: hard
 

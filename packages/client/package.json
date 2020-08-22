@@ -29,7 +29,7 @@
         "pnp-webpack-plugin": "^1.6.4",
         "sim-net": "workspace:packages/sim-net",
         "ts-loader": "^8.0.2",
-        "typescript": "rc",
+        "typescript": "^4.0.2",
         "webpack": "^4.44.1",
         "webpack-cli": "^3.3.12",
         "webpack-dev-server": "^3.11.0"
