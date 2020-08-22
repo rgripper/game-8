@@ -2,8 +2,7 @@ import { lastValueFrom, merge } from 'rxjs';
 import { bufferTime, tap } from 'rxjs/operators';
 import WebSocket from 'ws';
 import { createSigintObservable, createSimpleServer, waitForClients } from 'sim-net';
-import { Diff, SimCommand, WorldParams } from './sim/sim';
-import { exit } from 'process';
+import { BehaviourType, Diff, ModelType, SimCommand, WorldParams } from './sim/sim';
 
 export type Sim = (commands: SimCommand[]) => Diff[];
 
@@ -18,18 +17,52 @@ async function main() {
     const server = new WebSocket.Server({ port: 3888 });
     const terminator$ = createSigintObservable();
     console.log(`Server is running on ws://localhost:${3888}`);
-    const clients = await lastValueFrom(waitForClients(server, x => x, 2, 200, terminator$));
-    console.log('clients were received', clients);
+    const clients = await lastValueFrom(waitForClients(server, x => x, 1, 200, terminator$));
+    console.log('Clients were received', clients);
     const simpleServer = createSimpleServer<SimCommand, Diff[]>(clients);
     const sim = await createSimInRust({ size: { height: 500, width: 500 } });
     console.log('Sim started');
+
+    const initDiffs = sim([
+        { type: 'AddPlayer', player: { id: 1 } },
+        { type: 'AddPlayer', player: { id: 2 } },
+        {
+            type: 'AddEntity',
+            entity: {
+                id: 3,
+                model_type: ModelType.Human,
+                behaviour_type: BehaviourType.Actor,
+                boundaries: { top_left: { x: 10, y: 10 }, size: { height: 32, width: 32 } },
+                health: { max: 100, current: 100 },
+                player_id: 1,
+                rotation: 0,
+            },
+        },
+        {
+            type: 'AddEntity',
+            entity: {
+                id: 4,
+                model_type: ModelType.Human,
+                behaviour_type: BehaviourType.Actor,
+                boundaries: { top_left: { x: 200, y: 200 }, size: { height: 32, width: 32 } },
+                health: { max: 100, current: 100 },
+                player_id: 2,
+                rotation: 0,
+            },
+        },
+    ]);
+
+    console.log('Sending init diffs', initDiffs);
+
+    simpleServer.sendFrame(initDiffs);
+
     await lastValueFrom(
         merge(simpleServer.commands, terminator$).pipe(
             bufferTime<SimCommand>(10),
             tap(commands => {
                 const diffs = sim(commands);
                 if (diffs.length > 0) {
-                    console.log('outgoing diffs', diffs);
+                    console.log('Sending update diffs', diffs);
                     simpleServer.sendFrame(diffs);
                 }
             }),
@@ -37,8 +70,10 @@ async function main() {
     );
 
     console.log('Sim completed');
+    process.exit();
 }
 
-main()
-    .catch(() => process.exit(1))
-    .then(() => exit());
+main().catch(error => {
+    console.error(error);
+    process.exit(1);
+});
