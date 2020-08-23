@@ -4,3 +4,5 @@
 !/.yarn/plugins
 !/.yarn/sdks
 /.pnp.js
+
+*.tsbuildinfo

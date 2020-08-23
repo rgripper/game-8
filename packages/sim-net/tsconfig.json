@@ -2,7 +2,9 @@
     "extends": "../../tsconfig.json",
     "compilerOptions": {
         "declaration": true,
+        "incremental": true,
         "lib": ["ESNext"]
     },
+    "include": ["src"],
     "exclude": ["src/**/*.test.ts"]
 }

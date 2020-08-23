@@ -8,6 +8,7 @@ import { ID, Player, Process, Entity, SimCommand, Diff } from './client-sim/sim'
 import { WorldState } from './client-sim/world';
 import { connectToServer, SimpleClient } from 'sim-net';
 import { useAppContext } from '../AppContext';
+import { mapEventsToCommands } from './client-commands/mapEventsToCommands';
 
 function GameView() {
     // TODO: refactor duplicate init world
@@ -36,7 +37,30 @@ function GameView() {
                 isOpen: () => socket.readyState === socket.OPEN,
             };
 
-            connectToServer<SimCommand, Diff[]>(client as any, userId).then(setСhannelClient);
+            const movementKeys = {
+                forward: 'w',
+                back: 's',
+                left: 'a',
+                right: 'd',
+            };
+
+            const controlCommands$ = mapEventsToCommands({
+                target: document,
+                movementKeys,
+                entityId: 3,
+            });
+
+            connectToServer<SimCommand, Diff[]>(client as any, userId)
+                .then(client => {
+                    console.log('client is ready', client);
+                    setСhannelClient(client);
+                    return client;
+                })
+                .then(client => {
+                    client.ready();
+
+                    controlCommands$.subscribe(command => client.sendCommand(command));
+                });
         }
         //createPipeline({ worldParams }).then(setСhannelClient);
     }, [userId]);
@@ -59,8 +83,7 @@ function GameView() {
         });
         gameView.appendChild(app.view);
 
-        const commandSet = createCommands();
-        const commands$ = concat(commandSet.initCommands$, commandSet.controlCommands$);
+        const commandSet = createCommands(); // TODO: remove, done on the server
 
         const subscription = channelClient.frames
             .pipe(createRenderingPipe(app), createDebuggingPipe(initialWorld, setDebuggedWorld))

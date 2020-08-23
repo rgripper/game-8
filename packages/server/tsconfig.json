@@ -1,8 +1,10 @@
 {
     "extends": "../../tsconfig.json",
     "compilerOptions": {
+        "incremental": true,
         "declaration": true,
         "lib": ["ESNext"]
     },
+    "include": ["src"],
     "exclude": ["src/**/*.test.ts"]
 }

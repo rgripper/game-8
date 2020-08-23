@@ -1,6 +1,6 @@
 import { Observable, merge, fromEvent, firstValueFrom, fromEventPattern, throwError } from 'rxjs';
 import { AuthorizationPrefix, ReadyForFrames, AuthorizationSuccessful } from './control-commands';
-import { map, mergeMap, scan, tap, first, timeout } from 'rxjs/operators';
+import { map, mergeMap, scan, tap, first, timeout, skipWhile } from 'rxjs/operators';
 import { HasEventTargetAddRemove, NodeCompatibleEventEmitter, MessageEvent, WebSocketLike } from './base';
 
 export type SimpleServer<TCommand, TFrame> = {
@@ -65,9 +65,14 @@ export function waitForClients<TClient extends WebSocketLike, TServer extends Se
                     tap(
                         x => x.state === SocketNegotiationState.AuthAndNotReady && socket.send(AuthorizationSuccessful), // TODO: make sure it's sent only once
                     ),
+                    skipWhile(x => x.state === SocketNegotiationState.Unauth),
+                    timeout({
+                        each: 1000,
+                        with: () => throwError(new Error('Timed out waiting for auth to complete')),
+                    }),
                     first(x => x.state === SocketNegotiationState.AuthAndReady),
                     map(x => x.id!),
-                    timeout(authTimeout),
+
                     map(getClientIdByToken),
                 ),
             );
