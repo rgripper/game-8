@@ -25,7 +25,6 @@ function waitForClients(server, getClientIdByToken, expectedClientCount, authTim
     return rxjs_1.merge(cancellationObservable, rxjs_1.fromEvent(server, 'connection')).pipe(operators_1.mergeMap(async (args) => {
         const socket = Array.isArray(args) ? args[0] : args;
         const id = await rxjs_1.firstValueFrom(rxjs_1.merge(cancellationObservable, rxjs_1.fromEvent(socket, 'message')).pipe(operators_1.scan((negotiation, event) => {
-            //console.log('negotiation', negotiation, event.data);
             if (negotiation.state === SocketNegotiationState.Unauth) {
                 const id = getAuthToken(event);
                 if (id === null)
@@ -41,7 +40,7 @@ function waitForClients(server, getClientIdByToken, expectedClientCount, authTim
         }, { id: null, state: SocketNegotiationState.Unauth }), operators_1.tap(x => x.state === SocketNegotiationState.AuthAndNotReady && socket.send(control_commands_1.AuthorizationSuccessful)), operators_1.skipWhile(x => x.state === SocketNegotiationState.Unauth), operators_1.timeout({
             each: 1000,
             with: () => rxjs_1.throwError(new Error('Timed out waiting for auth to complete')),
-        }), operators_1.first(x => x.state === SocketNegotiationState.AuthAndReady), operators_1.tap(x => console.log('socket data', x)), operators_1.map(x => x.id), operators_1.map(getClientIdByToken)));
+        }), operators_1.first(x => x.state === SocketNegotiationState.AuthAndReady), operators_1.map(x => x.id), operators_1.map(getClientIdByToken)));
         return { socket, id };
     }), operators_1.scan((acc, socketAndId) => acc.concat(socketAndId), []), operators_1.first(socketsAndIds => socketsAndIds.length === expectedClientCount));
 }

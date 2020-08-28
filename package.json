@@ -15,7 +15,7 @@
     "server:start:dev": "yarn workspace server start:dev",
     "sim-net:build": "yarn workspace sim-net build",
     "sim-net:test": "yarn workspace sim-net test",
-    "sim:build": "wasm-pack build packages/sim"
+    "sim:build": "wasm-pack build packages/sim --target nodejs"
   },
   "devDependencies": {
     "@types/jest": "^26.0.10",
