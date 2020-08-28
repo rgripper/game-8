@@ -83,8 +83,6 @@ function GameView() {
         });
         gameView.appendChild(app.view);
 
-        const commandSet = createCommands(); // TODO: remove, done on the server
-
         const subscription = channelClient.frames
             .pipe(createRenderingPipe(app), createDebuggingPipe(initialWorld, setDebuggedWorld))
             .subscribe();
