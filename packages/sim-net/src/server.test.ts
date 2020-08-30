@@ -68,8 +68,8 @@ describe(createSimpleServer, () => {
 
         const simpleServer = createSimpleServer<string, { value: number }>(clients);
 
-        const receivedCommands: string[] = [];
-        simpleServer.commands.subscribe(c => receivedCommands.push(c));
+        const receivedCommandWrappers: { command: string; socketId: string }[] = [];
+        simpleServer.commands.subscribe(wrapper => receivedCommandWrappers.push(wrapper));
 
         simpleServer.sendFrame({ value: 44 });
         await Promise.resolve();
@@ -81,6 +81,9 @@ describe(createSimpleServer, () => {
         clients[0].socket.emitter.emit('message', { data: 10 });
         await Promise.resolve();
 
-        expect(receivedCommands).toEqual([20, 10]);
+        expect(receivedCommandWrappers).toEqual([
+            { command: 20, socketId: '2' },
+            { command: 10, socketId: '1' },
+        ]);
     });
 });
