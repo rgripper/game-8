@@ -4,7 +4,7 @@ import { map, mergeMap, scan, tap, first, timeout, skipWhile } from 'rxjs/operat
 import { HasEventTargetAddRemove, NodeCompatibleEventEmitter, MessageEvent, WebSocketLike } from './base';
 
 export type SimpleServer<TCommand, TFrame> = {
-    commands: Observable<TCommand>;
+    commands: Observable<{ command: TCommand; socketId: string }>;
     sendFrame(frame: TFrame): void;
 };
 
@@ -12,7 +12,11 @@ export function createSimpleServer<TCommand, TFrame>(
     clients: SocketAndId<WebSocketLike>[],
 ): SimpleServer<TCommand, TFrame> {
     const commands = merge(
-        ...clients.map(x => fromEvent<MessageEvent>(x.socket, 'message').pipe(map(x => JSON.parse(x.data as string)))),
+        ...clients.map(x =>
+            fromEvent<MessageEvent>(x.socket, 'message').pipe(
+                map(m => ({ command: JSON.parse(m.data as string), socketId: x.id })),
+            ),
+        ),
     );
     const sendFrame = (frame: TFrame) => clients.forEach(x => x.socket.send(JSON.stringify(frame)));
     return {

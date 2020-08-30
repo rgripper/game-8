@@ -4,7 +4,7 @@ use crate::physics::{Velocity};
 
 pub type ID = i32;
 
-pub type GenNewID = Fn() -> ID;
+pub type GenNewID = dyn Fn() -> ID;
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct Health {
@@ -23,6 +23,16 @@ pub enum ModelType {
     Human,
     Monster,
     Projectile,
+}
+
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+pub struct EntityParams {
+    pub health: Health,
+    pub boundaries: Rect,
+    pub rotation: Radians,
+    pub model_type: ModelType,
+    pub behaviour_type: BehaviourType,
+    pub player_id: ID,
 }
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]

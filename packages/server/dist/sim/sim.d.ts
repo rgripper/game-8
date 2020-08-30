@@ -33,7 +33,7 @@ declare type ActorShootStopCommand = {
 };
 declare type AddEntityCommand = {
     type: 'AddEntity';
-    entity: Entity;
+    entity_params: Omit<Entity, 'id'>;
 };
 declare type AddPlayerCommand = {
     type: 'AddPlayer';

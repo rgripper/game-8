@@ -1,3 +1,4 @@
+use crate::world::EntityParams;
 use crate::affects::affect_by_entity;
 use crate::behaviours::copy_update_entity_by_process_payload;
 use crate::geometry::{ Radians };
@@ -25,8 +26,14 @@ pub enum SimCommand {
     ActorShootStart { actor_id: ID },
     ActorShootStop { actor_id: ID },
 
-    AddEntity { entity: Entity },
+    AddEntity { entity_params: EntityParams },
     AddPlayer { player: Player }
+}
+
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+pub struct OwnedCommandWrapper {
+    command: SimCommand,
+    player_id: Option<ID>
 }
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
@@ -46,7 +53,7 @@ fn gen_new_id () -> ID {
 
 pub fn update_world(
     world_state: &mut WorldState,
-    sim_commands: &Vec<SimCommand>
+    owned_command_wrappers: &Vec<OwnedCommandWrapper>
 ) -> Vec<Diff> {
     let mut diffs = vec![];
     let pairs: Vec<_> = world_state
@@ -82,8 +89,8 @@ pub fn update_world(
         }
     }
 
-    for c in sim_commands {
-        let diffs_a = produce_diff_from_command(world_state, c, &gen_new_id);
+    for command_wrapper in owned_command_wrappers {
+        let diffs_a = produce_diff_from_command(world_state, &command_wrapper.command, &command_wrapper.player_id, &gen_new_id);
         for diff in diffs_a {
             apply_diff_to_world(world_state, &diff);
             diffs.push(diff);
@@ -96,8 +103,11 @@ pub fn update_world(
 fn produce_diff_from_command(
     world_state: &WorldState,
     sim_command: &SimCommand,
+    player_id: &Option<ID>, // TODO: use it to verify actions come from the right player
     gen_new_id: &GenNewID,
 ) -> Option<Diff> {
+    if player_id.is_some()
+        { println!("{}", &player_id.unwrap().to_string()); }
     match sim_command {
         SimCommand::ActorMoveStart { actor_id, payload } => {
             let maybe_found_process: Option<&Process> = world_state
@@ -130,7 +140,17 @@ fn produce_diff_from_command(
             .values()
             .find(|p| p.payload.is_entity_shoot() && p.entity_id == *actor_id)
             .map(|p| Diff::DeleteProcess { id: p.id }),
-        SimCommand::AddEntity { entity } => Some(Diff::UpsertEntity { entity: *entity }),
+        SimCommand::AddEntity { entity_params } => Some(Diff::UpsertEntity { 
+            entity: Entity { 
+                id: gen_new_id(),
+                health: entity_params.health,
+                boundaries: entity_params.boundaries,
+                rotation: entity_params.rotation,
+                model_type: entity_params.model_type,
+                behaviour_type: entity_params.behaviour_type,
+                player_id: entity_params.player_id
+            } 
+        }),
         SimCommand::AddPlayer { player } => Some(Diff::UpsertPlayer { player: *player })
     }
 }

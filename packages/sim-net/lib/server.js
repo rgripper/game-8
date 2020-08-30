@@ -5,7 +5,7 @@ const rxjs_1 = require("rxjs");
 const control_commands_1 = require("./control-commands");
 const operators_1 = require("rxjs/operators");
 function createSimpleServer(clients) {
-    const commands = rxjs_1.merge(...clients.map(x => rxjs_1.fromEvent(x.socket, 'message').pipe(operators_1.map(x => JSON.parse(x.data)))));
+    const commands = rxjs_1.merge(...clients.map(x => rxjs_1.fromEvent(x.socket, 'message').pipe(operators_1.map(m => ({ command: JSON.parse(m.data), socketId: x.id })))));
     const sendFrame = (frame) => clients.forEach(x => x.socket.send(JSON.stringify(frame)));
     return {
         commands,

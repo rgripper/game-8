@@ -43,7 +43,7 @@ type ActorShootStopCommand = {
 
 type AddEntityCommand = {
     type: 'AddEntity';
-    entity: Entity;
+    entity_params: Omit<Entity, 'id'>;
 };
 
 type AddPlayerCommand = {

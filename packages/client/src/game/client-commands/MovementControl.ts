@@ -1,7 +1,10 @@
-import { map, distinctUntilChanged, scan } from 'rxjs/operators';
+import { map, distinctUntilChanged, scan, withLatestFrom } from 'rxjs/operators';
 import { Observable, merge } from 'rxjs';
-import { getRadians } from './createCommands';
-import { SimCommand } from '../client-sim/sim';
+import { Radians, SimCommand } from '../client-sim/sim';
+
+function getRadians(angle: number): Radians {
+    return (angle * Math.PI) / 180;
+}
 
 enum AxisState {
     Negative,
@@ -19,7 +22,7 @@ const initialMovementTracker: MovementTracker = {
 type MapKeysToCommandsParams = {
     keyUps$: Observable<KeyboardEvent>;
     keyDowns$: Observable<KeyboardEvent>;
-    entityId: number;
+    entityId$: Observable<number>;
 };
 
 export type MovementKeys = {
@@ -31,20 +34,22 @@ export type MovementKeys = {
 
 export function mapMovementKeysToCommands(
     movementKeys: MovementKeys,
-    { keyUps$, keyDowns$, entityId }: MapKeysToCommandsParams,
+    { keyUps$, keyDowns$, entityId$ }: MapKeysToCommandsParams,
 ) {
     const keyEvents$ = merge(
         keyUps$.pipe(map(event => ({ event, reducer: removeAxisState }))),
         keyDowns$.pipe(map(event => ({ event, reducer: setAxisState }))),
     );
-
+    // NOTE: this only works with the same entityId, otherwise movement stop applied to a different entity from what has started it, making original entity never stop
     return keyEvents$.pipe(
+        
         scan<{ event: KeyboardEvent; reducer: AxisTrackerReducer }, MovementTracker>(
             (tracker, { event, reducer }) => reduceTrackerWithKey(movementKeys, tracker, event.key, reducer),
             initialMovementTracker,
         ),
         distinctUntilChanged(),
-        map(movementTracker => mapKeyboard(movementTracker, entityId)),
+        withLatestFrom(entityId$),
+        map(([movementTracker, entityId]) => mapKeyboard(movementTracker, entityId)),
     );
 }
 

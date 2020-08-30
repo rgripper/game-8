@@ -49,8 +49,7 @@ async function main() {
         { type: 'AddPlayer', player: { id: 2 } },
         {
             type: 'AddEntity',
-            entity: {
-                id: 3,
+            entity_params: {
                 model_type: sim_1.ModelType.Human,
                 behaviour_type: sim_1.BehaviourType.Actor,
                 boundaries: { top_left: { x: 10, y: 10 }, size: { height: 32, width: 32 } },
@@ -61,8 +60,7 @@ async function main() {
         },
         {
             type: 'AddEntity',
-            entity: {
-                id: 4,
+            entity_params: {
                 model_type: sim_1.ModelType.Human,
                 behaviour_type: sim_1.BehaviourType.Actor,
                 boundaries: { top_left: { x: 200, y: 200 }, size: { height: 32, width: 32 } },
@@ -71,11 +69,14 @@ async function main() {
                 rotation: 0,
             },
         },
-    ]);
+    ].map(command => ({ command, player_id: null })));
     console.log('Sending init diffs', initDiffs);
     simpleServer.sendFrame(initDiffs);
-    await rxjs_1.lastValueFrom(rxjs_1.merge(simpleServer.commands, terminator$).pipe(operators_1.bufferTime(10), operators_1.tap(commands => {
-        const diffs = sim(commands);
+    await rxjs_1.lastValueFrom(rxjs_1.merge(simpleServer.commands, terminator$).pipe(operators_1.bufferTime(10), operators_1.tap(wrappedCommands => {
+        const diffs = sim(wrappedCommands.map(sc => ({
+            command: sc.command,
+            player_id: parseInt(sc.socketId),
+        })));
         if (diffs.length > 0) {
             console.log('Sending update diffs', diffs);
             simpleServer.sendFrame(diffs);

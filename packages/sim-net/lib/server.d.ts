@@ -1,7 +1,10 @@
 import { Observable } from 'rxjs';
 import { HasEventTargetAddRemove, NodeCompatibleEventEmitter, WebSocketLike } from './base';
 export declare type SimpleServer<TCommand, TFrame> = {
-    commands: Observable<TCommand>;
+    commands: Observable<{
+        command: TCommand;
+        socketId: string;
+    }>;
     sendFrame(frame: TFrame): void;
 };
 export declare function createSimpleServer<TCommand, TFrame>(clients: SocketAndId<WebSocketLike>[]): SimpleServer<TCommand, TFrame>;

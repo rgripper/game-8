@@ -1,3 +1,4 @@
+use crate::sim::OwnedCommandWrapper;
 use crate::sim::{ update_world, SimCommand };
 use crate::geometry::Size;
 use crate::geometry::Point;
@@ -38,10 +39,10 @@ impl SimInterop {
             world_state: create_world(world_params)
         }
     }
-
-    pub fn update (&mut self, js_sim_commands: &JsValue) -> JsValue {
-        let sim_commands: Vec<SimCommand> = js_sim_commands.into_serde().unwrap();
-        let diffs = update_world(&mut self.world_state, &sim_commands);
+    
+    pub fn update (&mut self, js_owned_command_wrappers: &JsValue) -> JsValue {
+        let owned_command_wrappers: Vec<OwnedCommandWrapper> = js_owned_command_wrappers.into_serde().unwrap();
+        let diffs = update_world(&mut self.world_state, &owned_command_wrappers);
         JsValue::from_serde(&diffs).unwrap()
     }
 }

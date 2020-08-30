@@ -4,7 +4,12 @@ import WebSocket from 'ws';
 import { createSigintObservable, createSimpleServer, waitForClients } from 'sim-net';
 import { BehaviourType, Diff, ModelType, SimCommand, WorldParams } from './sim/sim';
 
-export type Sim = (commands: SimCommand[]) => Diff[];
+type OwnedCommandWrapper = {
+    command: SimCommand;
+    player_id: number | null;
+};
+
+export type Sim = (commandWrappers: OwnedCommandWrapper[]) => Diff[];
 
 export async function createSimInRust(world_params: WorldParams): Promise<Sim> {
     const { SimInterop: RustSimInterop, set_panic } = await import('../../sim/pkg/sim');
@@ -28,8 +33,7 @@ async function main() {
         { type: 'AddPlayer', player: { id: 2 } },
         {
             type: 'AddEntity',
-            entity: {
-                id: 3,
+            entity_params: {
                 model_type: ModelType.Human,
                 behaviour_type: BehaviourType.Actor,
                 boundaries: { top_left: { x: 10, y: 10 }, size: { height: 32, width: 32 } },
@@ -40,8 +44,7 @@ async function main() {
         },
         {
             type: 'AddEntity',
-            entity: {
-                id: 4,
+            entity_params: {
                 model_type: ModelType.Human,
                 behaviour_type: BehaviourType.Actor,
                 boundaries: { top_left: { x: 200, y: 200 }, size: { height: 32, width: 32 } },
@@ -50,7 +53,7 @@ async function main() {
                 rotation: 0,
             },
         },
-    ]);
+    ].map(command => ({ command, player_id: null } as OwnedCommandWrapper)));
 
     console.log('Sending init diffs', initDiffs);
 
@@ -58,9 +61,14 @@ async function main() {
 
     await lastValueFrom(
         merge(simpleServer.commands, terminator$).pipe(
-            bufferTime<SimCommand>(10),
-            tap(commands => {
-                const diffs = sim(commands);
+            bufferTime<{ command: SimCommand; socketId: string }>(10),
+            tap(wrappedCommands => {
+                const diffs = sim(
+                    wrappedCommands.map<OwnedCommandWrapper>(sc => ({
+                        command: sc.command,
+                        player_id: parseInt(sc.socketId),
+                    })),
+                );
                 if (diffs.length > 0) {
                     console.log('Sending update diffs', diffs);
                     simpleServer.sendFrame(diffs);

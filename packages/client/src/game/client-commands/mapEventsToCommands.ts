@@ -1,34 +1,36 @@
-import { fromEvent, merge } from 'rxjs';
+import { fromEvent, merge, Observable } from 'rxjs';
 import { FromEventTarget } from 'rxjs/dist/types/internal/observable/fromEvent';
 
-import { filter, map } from 'rxjs/operators';
+import { filter, map, withLatestFrom } from 'rxjs/operators';
 import { SimCommand } from '../client-sim/sim';
 import { mapMovementKeysToCommands, MovementKeys } from './MovementControl';
 
 type MapEventsToCommandsParams = {
     target: FromEventTarget<any>;
     movementKeys: MovementKeys;
-    entityId: number;
+    entityId$: Observable<number>;
 };
 
-export function mapEventsToCommands({ target, movementKeys, entityId }: MapEventsToCommandsParams) {
+export function mapEventsToCommands({ target, movementKeys, entityId$ }: MapEventsToCommandsParams) {
     const keyDowns$ = fromEvent<KeyboardEvent>(target, 'keydown').pipe(filter(x => !x.repeat));
     const keyUps$ = fromEvent<KeyboardEvent>(target, 'keyup');
 
     const movementCommands$ = mapMovementKeysToCommands(movementKeys, {
         keyUps$,
         keyDowns$,
-        entityId,
+        entityId$,
     });
 
     const shootingCommands$ = merge(
         keyDowns$.pipe(
             filter(e => e.key === ' '),
-            map((e): SimCommand => ({ type: 'ActorShootStart', actor_id: entityId })),
+            withLatestFrom(entityId$),
+            map(([e, entityId]): SimCommand => ({ type: 'ActorShootStart', actor_id: entityId })),
         ),
         keyUps$.pipe(
             filter(e => e.key === ' '),
-            map((e): SimCommand => ({ type: 'ActorShootStop', actor_id: entityId })),
+            withLatestFrom(entityId$),
+            map(([e, entityId]): SimCommand => ({ type: 'ActorShootStop', actor_id: entityId })),
         ),
     );
 

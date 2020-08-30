@@ -1,33 +1,48 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import * as PIXI from 'pixi.js';
 import { createRenderingPipe } from './rendering/rendering';
-import { concat } from 'rxjs';
 import DebugView, { createDebuggingPipe } from './DebugView';
-import createCommands from './client-commands/createCommands';
-import { ID, Player, Process, Entity, SimCommand, Diff } from './client-sim/sim';
+import { ID, Player, Process, Entity, SimCommand, Diff, ModelType } from './client-sim/sim';
 import { WorldState } from './client-sim/world';
 import { connectToServer, SimpleClient } from 'sim-net';
 import { useAppContext } from '../AppContext';
 import { mapEventsToCommands } from './client-commands/mapEventsToCommands';
+import { Subject, Subscription } from 'rxjs';
+import { distinctUntilChanged, filter, map, tap } from 'rxjs/operators';
+
+function isDefined<T>(value: T | undefined | null): value is T {
+    return value != undefined;
+}
+
+const worldParams = { size: { width: 500, height: 500 } };
+
+const initialWorld: WorldState = {
+    boundaries: { top_left: { x: 0, y: 0 }, size: worldParams.size },
+    players: new Map<ID, Player>(),
+    processes: new Map<ID, Process>(),
+    entities: new Map<ID, Entity>(),
+};
 
 function GameView() {
     // TODO: refactor duplicate init world
     const { userId } = useAppContext();
-    const worldParams = { size: { width: 500, height: 500 } };
-    const initialWorld: WorldState = {
-        boundaries: { top_left: { x: 0, y: 0 }, size: worldParams.size },
-        players: new Map<ID, Player>(),
-        processes: new Map<ID, Process>(),
-        entities: new Map<ID, Entity>(),
-    };
 
     const [channelClient, setСhannelClient] = useState<SimpleClient<SimCommand, Diff[]> | undefined>(undefined);
 
-    const [debuggedWorld, setDebuggedWorld] = useState<WorldState>(initialWorld);
+    const [debuggedWorld, setDebuggedWorld] = useState<WorldState>(() => {
+        return initialWorld;
+    });
     const gameViewRef = useRef<HTMLDivElement | null>(null);
 
+    const world$ = useMemo(() => new Subject<WorldState>(), []);
+
     useEffect(() => {
+        if (gameViewRef.current === null) {
+            return;
+        }
+
         if (userId) {
+            const player_id = parseInt(userId);
             const socket = new WebSocket('ws://localhost:3888');
             const client = {
                 // TODO: provide a better interface
@@ -47,8 +62,25 @@ function GameView() {
             const controlCommands$ = mapEventsToCommands({
                 target: document,
                 movementKeys,
-                entityId: 3,
+                entityId$: world$.pipe(
+                    map(w =>
+                        Array.from(w.entities.values()).find(
+                            x => x.model_type === ModelType.Human && x.player_id === player_id,
+                        ),
+                    ),
+                    filter(isDefined),
+                    map(x => x.id),
+                    distinctUntilChanged(),
+                ),
             });
+
+            let subscription: Subscription; // TODO: this is very messy, hopefully refactored away with whole client refactor
+            const gameView = gameViewRef.current;
+            const app = new PIXI.Application({
+                backgroundColor: 0xffaaff,
+                ...worldParams.size,
+            });
+            gameView.appendChild(app.view);
 
             connectToServer<SimCommand, Diff[]>(client as any, userId)
                 .then(client => {
@@ -57,38 +89,31 @@ function GameView() {
                     return client;
                 })
                 .then(client => {
+                    subscription = client.frames
+                        .pipe(
+                            createRenderingPipe(app),
+                            createDebuggingPipe(initialWorld, w => {
+                                setDebuggedWorld(w);
+                                world$.next(w);
+                            }),
+                        )
+                        .subscribe();
+
                     client.ready();
 
-                    controlCommands$.subscribe(command => client.sendCommand(command));
+                    controlCommands$
+                        .pipe(
+                            tap(cmds => {
+                                console.log('cmds', cmds);
+                            }),
+                        )
+                        .subscribe(command => client.sendCommand(command));
                 });
+
+            return () => subscription.unsubscribe();
         }
         //createPipeline({ worldParams }).then(setСhannelClient);
     }, [userId]);
-
-    useEffect(() => {
-        if (gameViewRef.current === null) {
-            return;
-        }
-
-        if (channelClient === undefined) {
-            return;
-        }
-
-        console.log('channelClient', channelClient);
-
-        const gameView = gameViewRef.current;
-        const app = new PIXI.Application({
-            backgroundColor: 0xffaaff,
-            ...worldParams.size,
-        });
-        gameView.appendChild(app.view);
-
-        const subscription = channelClient.frames
-            .pipe(createRenderingPipe(app), createDebuggingPipe(initialWorld, setDebuggedWorld))
-            .subscribe();
-
-        return () => subscription.unsubscribe();
-    }, [channelClient]);
 
     return (
         <div className="App">
