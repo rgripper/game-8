@@ -28,6 +28,7 @@ const operators_1 = require("rxjs/operators");
 const ws_1 = __importDefault(require("ws"));
 const sim_net_1 = require("sim-net");
 const sim_1 = require("./sim/sim");
+const minimist_1 = __importDefault(require("minimist"));
 async function createSimInRust(world_params) {
     const { SimInterop: RustSimInterop, set_panic } = await Promise.resolve().then(() => __importStar(require('../../sim/pkg/sim')));
     set_panic();
@@ -36,10 +37,21 @@ async function createSimInRust(world_params) {
 }
 exports.createSimInRust = createSimInRust;
 async function main() {
+    const argv = minimist_1.default(process.argv.slice(2));
+    const playersCount = argv["p"] || argv["players"] || 1;
     const server = new ws_1.default.Server({ port: 3888 });
     const terminator$ = sim_net_1.createSigintObservable();
-    console.log(`Server is running on ws://localhost:${3888}`);
-    const clients = await rxjs_1.lastValueFrom(sim_net_1.waitForClients(server, x => x, 1, 200, terminator$));
+    console.log(`Server is running on ws://localhost:${3888} for ${playersCount} player(s)`);
+    for (let i = 1; i <= playersCount; i++) {
+        console.log(`Player ${i} link: http://localhost:9010/game?userId=${i}`);
+    }
+    const clients = await rxjs_1.lastValueFrom(sim_net_1.waitForClients({
+        server,
+        getClientIdByToken: x => x,
+        expectedClientCount: playersCount,
+        authTimeout: 200,
+        cancellationObservable: terminator$
+    }));
     console.log('Clients were received', clients);
     const simpleServer = sim_net_1.createSimpleServer(clients);
     const sim = await createSimInRust({ size: { height: 500, width: 500 } });

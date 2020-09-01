@@ -21,7 +21,7 @@ exports.createSigintObservable = createSigintObservable;
  * Completes when all sockets have been returned.
  * @param cancellationObservable Must throw an error
  */
-function waitForClients(server, getClientIdByToken, expectedClientCount, authTimeout, cancellationObservable) {
+function waitForClients({ server, getClientIdByToken, expectedClientCount, authTimeout, cancellationObservable }) {
     return rxjs_1.merge(cancellationObservable, rxjs_1.fromEvent(server, 'connection')).pipe(operators_1.mergeMap(async (args) => {
         const socket = Array.isArray(args) ? args[0] : args;
         const id = await rxjs_1.firstValueFrom(rxjs_1.merge(cancellationObservable, rxjs_1.fromEvent(socket, 'message')).pipe(operators_1.scan((negotiation, event) => {
