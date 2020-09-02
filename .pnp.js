@@ -1464,6 +1464,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD",
         }]
       ]],
+      ["@types/minimist", [
+        ["npm:1.2.0", {
+          "packageLocation": "./.yarn/cache/@types-minimist-npm-1.2.0-cce0ca92ef-098945c2c2.zip/node_modules/@types/minimist/",
+          "packageDependencies": [
+            ["@types/minimist", "npm:1.2.0"]
+          ],
+          "linkType": "HARD",
+        }]
+      ]],
       ["@types/node", [
         ["npm:14.0.27", {
           "packageLocation": "./.yarn/cache/@types-node-npm-14.0.27-d33df6dc81-54ecf408eb.zip/node_modules/@types/node/",
@@ -10207,10 +10216,12 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [
             ["server", "workspace:packages/server"],
             ["@types/jest", "npm:26.0.10"],
+            ["@types/minimist", "npm:1.2.0"],
             ["@types/node", "npm:14.0.27"],
             ["@types/ws", "npm:7.2.6"],
             ["concurrently", "npm:5.3.0"],
             ["jest", "npm:26.4.0"],
+            ["minimist", "npm:1.2.5"],
             ["nodemon", "npm:2.0.4"],
             ["pnp-webpack-plugin", "npm:1.6.4"],
             ["rimraf", "npm:3.0.2"],

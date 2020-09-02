@@ -32,16 +32,26 @@ export function createSigintObservable(): Observable<never> {
     ).pipe(mergeMap(() => throwError(new Error('SIGINT'))));
 }
 
+export type WaitForClientArguments<TServer extends ServerLike> = {
+    server: TServer;
+    getClientIdByToken: (authToken: string) => string;
+    expectedClientCount: number;
+    authTimeout: number;
+    cancellationObservable: Observable<never>;
+}
+
 /**
  * Completes when all sockets have been returned.
  * @param cancellationObservable Must throw an error
  */
 export function waitForClients<TClient extends WebSocketLike, TServer extends ServerLike>(
-    server: TServer,
-    getClientIdByToken: (authToken: string) => string,
-    expectedClientCount: number,
-    authTimeout: number,
-    cancellationObservable: Observable<never>,
+    {
+        server,
+        getClientIdByToken,
+        expectedClientCount,
+        authTimeout,
+        cancellationObservable
+    }: WaitForClientArguments<TServer>
 ): Observable<SocketAndId<TClient>[]> {
     return merge(cancellationObservable, fromEvent<TClient | [TClient]>(server, 'connection')).pipe(
         mergeMap(async args => {
