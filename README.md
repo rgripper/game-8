@@ -12,6 +12,8 @@ Update your rust install with
 
 ### Issues
 
+First time you open any TS file in this project in VSCode, make sure you select TypeScript version is `4.0.1-rc-pnpify`, otherwise it won't work with yarn PnP.
+
 Node ES modules are not yet working with yarn PnP
 
 Navigating to external node modules in VSCode is not yet available.
@@ -22,6 +24,7 @@ https://marketplace.visualstudio.com/items?itemName=arcanis.vscode-zipfs
 Sometimes yarn install fails. Close and reopen VS Code, it will work.
 
 ### TODOs
+
 -   Game lobby
 -   `net:build` review spliting into a server and a client if tree shaking doesnt remove client deps on server websocket impl
 
