@@ -15,7 +15,15 @@ describe('real sockets', () => {
             isOpen: () => client.readyState === client.OPEN,
         };
 
-        const waitForClientsPromise = lastValueFrom(waitForClients(server, x => x, 1, 1000, NEVER)).then();
+        const waitForClientsPromise = lastValueFrom(
+            waitForClients({
+                server,
+                getClientIdByToken: x => x,
+                expectedClientCount: 1,
+                authTimeout: 1000,
+                cancellationObservable: NEVER
+            })
+        ).then();
 
         const authToken = 'authToken';
         const messageHandler = jest.fn();

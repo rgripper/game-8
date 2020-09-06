@@ -81,7 +81,7 @@ export function waitForClients<TClient extends WebSocketLike, TServer extends Se
                     ),
                     skipWhile(x => x.state === SocketNegotiationState.Unauth),
                     timeout({
-                        each: 1000,
+                        each: authTimeout,
                         with: () => throwError(new Error('Timed out waiting for auth to complete')),
                     }),
                     first(x => x.state === SocketNegotiationState.AuthAndReady),

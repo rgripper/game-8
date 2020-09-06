@@ -38,7 +38,7 @@ function waitForClients({ server, getClientIdByToken, expectedClientCount, authT
             }
             throw new Error('no more commands expected after socket has been authorized and ready');
         }, { id: null, state: SocketNegotiationState.Unauth }), operators_1.tap(x => x.state === SocketNegotiationState.AuthAndNotReady && socket.send(control_commands_1.AuthorizationSuccessful)), operators_1.skipWhile(x => x.state === SocketNegotiationState.Unauth), operators_1.timeout({
-            each: 1000,
+            each: authTimeout,
             with: () => rxjs_1.throwError(new Error('Timed out waiting for auth to complete')),
         }), operators_1.first(x => x.state === SocketNegotiationState.AuthAndReady), operators_1.map(x => x.id), operators_1.map(getClientIdByToken)));
         return { socket, id };

@@ -30,7 +30,15 @@ describe('server', () => {
         const serverEmitter = new EventEmitter();
         const server = createFakeServer(serverEmitter);
         const terminator = throwError('Terminated!');
-        const waitForClientsPromise = lastValueFrom(waitForClients(server, x => x, 3, 1000, terminator));
+        const waitForClientsPromise = lastValueFrom(
+            waitForClients({
+                server,
+                getClientIdByToken: x => x,
+                expectedClientCount: 3,
+                authTimeout: 1000,
+                cancellationObservable: terminator
+            })
+        );
         //expect(waitForClientsPromise).toBe(55);
         await expect(waitForClientsPromise).rejects.toBe('Terminated!');
     });
@@ -38,7 +46,15 @@ describe('server', () => {
     it('returns all sockets when count is reached', async () => {
         const serverEmitter = new EventEmitter();
         const server = createFakeServer(serverEmitter);
-        const waitForClientsPromise = lastValueFrom(waitForClients(server, x => x, 3, 1000, NEVER));
+        const waitForClientsPromise = lastValueFrom(
+            waitForClients({
+                server,
+                getClientIdByToken: x => x,
+                expectedClientCount: 3,
+                authTimeout: 1000,
+                cancellationObservable: NEVER
+            })
+        );
 
         const client1 = createFakeClient();
         serverEmitter.emit('connection', client1);
