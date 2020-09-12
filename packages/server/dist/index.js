@@ -29,6 +29,9 @@ const ws_1 = __importDefault(require("ws"));
 const sim_net_1 = require("sim-net");
 const sim_1 = require("./sim/sim");
 const minimist_1 = __importDefault(require("minimist"));
+const http_1 = __importDefault(require("http"));
+const serverPort = 3888;
+const httpServerPort = 3889;
 async function createSimInRust(world_params) {
     const { SimInterop: RustSimInterop, set_panic } = await Promise.resolve().then(() => __importStar(require('../../sim/pkg/sim')));
     set_panic();
@@ -38,19 +41,18 @@ async function createSimInRust(world_params) {
 exports.createSimInRust = createSimInRust;
 async function main() {
     const argv = minimist_1.default(process.argv.slice(2));
-    const playersCount = argv["p"] || argv["players"] || 1;
-    const server = new ws_1.default.Server({ port: 3888 });
+    const playersCount = argv['p'] || argv['players'] || 1;
+    const server = new ws_1.default.Server({ port: serverPort });
     const terminator$ = sim_net_1.createSigintObservable();
-    console.log(`Server is running on ws://localhost:${3888} for ${playersCount} player(s)`);
-    for (let i = 1; i <= playersCount; i++) {
-        console.log(`Player ${i} link: http://localhost:9010/game?userId=${i}`);
-    }
+    console.log(`Server is running on ws://localhost:${serverPort} for ${playersCount} player(s)`);
+    startHttpServer(playersCount);
+    console.log(`Links for the players: http://localhost:${httpServerPort}`);
     const clients = await rxjs_1.lastValueFrom(sim_net_1.waitForClients({
         server,
         getClientIdByToken: x => x,
         expectedClientCount: playersCount,
         authTimeout: 200,
-        cancellationObservable: terminator$
+        cancellationObservable: terminator$,
     }));
     console.log('Clients were received', clients);
     const simpleServer = sim_net_1.createSimpleServer(clients);
@@ -96,6 +98,25 @@ async function main() {
     })));
     console.log('Sim completed');
     process.exit();
+}
+async function startHttpServer(playersCount) {
+    let indexPageText = '';
+    indexPageText += '<!DOCTYPE html><html>';
+    indexPageText += '<head>Links for the players</head>';
+    indexPageText += '<body>';
+    indexPageText += '<ul>';
+    for (let i = 1; i <= playersCount; i++) {
+        indexPageText += `<li><a href="http://localhost:9010/game?userId=${i}">`;
+        indexPageText += `Player ${i} link`;
+        indexPageText += '</a></li>';
+    }
+    indexPageText += '</ul>';
+    indexPageText += '</body>';
+    indexPageText += '</html>';
+    http_1.default.createServer(function (req, res) {
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.end(indexPageText);
+    }).listen(httpServerPort);
 }
 main().catch(error => {
     console.error(error);
