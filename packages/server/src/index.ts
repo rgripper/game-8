@@ -4,11 +4,15 @@ import WebSocket from 'ws';
 import { createSigintObservable, createSimpleServer, waitForClients } from 'sim-net';
 import { BehaviourType, Diff, ModelType, SimCommand, WorldParams } from './sim/sim';
 import minimist from 'minimist';
+import http from "http";
 
 type OwnedCommandWrapper = {
     command: SimCommand;
     player_id: number | null;
 };
+
+const serverPort = 3888;
+const httpServerPort = 3889;
 
 export type Sim = (commandWrappers: OwnedCommandWrapper[]) => Diff[];
 
@@ -23,13 +27,13 @@ async function main() {
     const argv = minimist(process.argv.slice(2));
     const playersCount = argv["p"] || argv["players"] || 1;
 
-    const server = new WebSocket.Server({ port: 3888 });
+    const server = new WebSocket.Server({ port: serverPort });
     const terminator$ = createSigintObservable();
 
-    console.log(`Server is running on ws://localhost:${3888} for ${playersCount} player(s)`);
-    for (let i = 1; i <= playersCount; i++) {
-        console.log(`Player ${i} link: http://localhost:9010/game?userId=${i}`);
-    }
+    console.log(`Server is running on ws://localhost:${serverPort} for ${playersCount} player(s)`);
+    startHttpServer(playersCount);
+    console.log(`Links for the players: http://localhost:${httpServerPort}`);
+
     const clients = await lastValueFrom(waitForClients({
         server,
         getClientIdByToken: x => x,
@@ -93,6 +97,30 @@ async function main() {
 
     console.log('Sim completed');
     process.exit();
+}
+
+async function startHttpServer(playersCount: number) {
+    let indexPageText = '';
+
+    indexPageText += '<!DOCTYPE html><html>';
+    indexPageText += '<head>Links for the players</head>';
+
+    indexPageText += '<body>';
+    indexPageText += '<ul>';
+    for (let i = 1; i <= playersCount; i++) {
+        indexPageText += `<li><a href="http://localhost:9010/game?userId=${i}}">`
+        indexPageText += `Player ${i} link`;
+        indexPageText += '</a></li>'
+    }
+    indexPageText += '</ul>';
+    indexPageText += '</body>';
+
+    indexPageText += '</html>';
+
+    http.createServer(function (req, res) {
+        res.writeHead(200, {'Content-Type': 'text/html'});
+        res.end(indexPageText);
+    }).listen(httpServerPort);
 }
 
 main().catch(error => {
