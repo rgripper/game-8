@@ -41,7 +41,7 @@ async function createSimInRust(world_params) {
 exports.createSimInRust = createSimInRust;
 async function main() {
     const argv = minimist_1.default(process.argv.slice(2));
-    const playersCount = argv["p"] || argv["players"] || 1;
+    const playersCount = argv['p'] || argv['players'] || 1;
     const server = new ws_1.default.Server({ port: serverPort });
     const terminator$ = sim_net_1.createSigintObservable();
     console.log(`Server is running on ws://localhost:${serverPort} for ${playersCount} player(s)`);
@@ -52,7 +52,7 @@ async function main() {
         getClientIdByToken: x => x,
         expectedClientCount: playersCount,
         authTimeout: 200,
-        cancellationObservable: terminator$
+        cancellationObservable: terminator$,
     }));
     console.log('Clients were received', clients);
     const simpleServer = sim_net_1.createSimpleServer(clients);
@@ -106,7 +106,7 @@ async function startHttpServer(playersCount) {
     indexPageText += '<body>';
     indexPageText += '<ul>';
     for (let i = 1; i <= playersCount; i++) {
-        indexPageText += `<li><a href="http://localhost:9010/game?userId=${i}}">`;
+        indexPageText += `<li><a href="http://localhost:9010/game?userId=${i}">`;
         indexPageText += `Player ${i} link`;
         indexPageText += '</a></li>';
     }
