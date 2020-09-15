@@ -25,73 +25,70 @@ export function createSimpleServer<TCommand, TFrame>(
     };
 }
 
-export function createSigintObservable(): Observable<never> {
-    return fromEventPattern(
-        x => process.on('SIGINT', x),
-        x => process.off('SIGINT', x),
-    ).pipe(mergeMap(() => throwError(new Error('SIGINT'))));
-}
-
 export type WaitForClientArguments<TServer extends ServerLike> = {
     server: TServer;
     getClientIdByToken: (authToken: string) => string;
     expectedClientCount: number;
     authTimeout: number;
-    cancellationObservable: Observable<never>;
+};
+
+function negotinationReducer<TClient>(negotiation: SocketNegotiation<TClient>, event: MessageEvent) {
+    if (negotiation.state === SocketNegotiationState.Unauth) {
+        const id = getAuthToken(event);
+        if (id === null) throw new Error('Expected command to be Authorization');
+        return { ...negotiation, id, state: SocketNegotiationState.AuthAndNotReady };
+    }
+
+    if (negotiation.state === SocketNegotiationState.AuthAndNotReady) {
+        if (event.data !== ReadyForFrames) throw new Error('Expected command to be ReadyForFrames');
+        return { ...negotiation, state: SocketNegotiationState.AuthAndReady };
+    }
+
+    throw new Error('no more commands expected after socket has been authorized and ready');
 }
 
+function negoriateClientToReady<TClient extends WebSocketLike>({
+    socket,
+    authTimeout,
+    getClientIdByToken,
+}: {
+    socket: TClient;
+    authTimeout: number;
+    getClientIdByToken: (authToken: string) => string;
+}) {
+    return fromEvent<MessageEvent>(socket, 'message').pipe(
+        scan<MessageEvent, SocketNegotiation<TClient>>((a, b) => negotinationReducer<TClient>(a, b), {
+            id: null,
+            state: SocketNegotiationState.Unauth,
+            socket,
+        } as SocketNegotiation<TClient>),
+        tap(
+            x => x.state === SocketNegotiationState.AuthAndNotReady && socket.send(AuthorizationSuccessful), // TODO: make sure it's sent only once
+        ),
+        skipWhile(x => x.state === SocketNegotiationState.Unauth),
+        timeout({
+            each: authTimeout,
+            with: () => throwError(new Error('Timed out waiting for auth to complete')),
+        }),
+        first(x => x.state === SocketNegotiationState.AuthAndReady),
+        map(x => x.id!),
+        map(getClientIdByToken),
+        map(id => ({ socket, id })),
+    );
+}
 /**
  * Completes when all sockets have been returned.
  * @param cancellationObservable Must throw an error
  */
-export function waitForClients<TClient extends WebSocketLike, TServer extends ServerLike>(
-    {
-        server,
-        getClientIdByToken,
-        expectedClientCount,
-        authTimeout,
-        cancellationObservable
-    }: WaitForClientArguments<TServer>
-): Observable<SocketAndId<TClient>[]> {
-    return merge(cancellationObservable, fromEvent<TClient | [TClient]>(server, 'connection')).pipe(
-        mergeMap(async args => {
-            const socket = Array.isArray(args) ? args[0] : args;
-            const id = await firstValueFrom(
-                merge(cancellationObservable, fromEvent<MessageEvent>(socket, 'message')).pipe(
-                    scan(
-                        (negotiation, event: MessageEvent) => {
-                            if (negotiation.state === SocketNegotiationState.Unauth) {
-                                const id = getAuthToken(event);
-                                if (id === null) throw new Error('Expected command to be Authorization');
-                                return { id, state: SocketNegotiationState.AuthAndNotReady };
-                            }
-
-                            if (negotiation.state === SocketNegotiationState.AuthAndNotReady) {
-                                if (event.data !== ReadyForFrames)
-                                    throw new Error('Expected command to be ReadyForFrames');
-                                return { id: negotiation.id, state: SocketNegotiationState.AuthAndReady };
-                            }
-
-                            throw new Error('no more commands expected after socket has been authorized and ready');
-                        },
-                        { id: null, state: SocketNegotiationState.Unauth } as SocketNegotiation,
-                    ),
-                    tap(
-                        x => x.state === SocketNegotiationState.AuthAndNotReady && socket.send(AuthorizationSuccessful), // TODO: make sure it's sent only once
-                    ),
-                    skipWhile(x => x.state === SocketNegotiationState.Unauth),
-                    timeout({
-                        each: authTimeout,
-                        with: () => throwError(new Error('Timed out waiting for auth to complete')),
-                    }),
-                    first(x => x.state === SocketNegotiationState.AuthAndReady),
-                    map(x => x.id!),
-
-                    map(getClientIdByToken),
-                ),
-            );
-            return { socket, id };
-        }),
+export function waitForClients<TClient extends WebSocketLike, TServer extends ServerLike>({
+    server,
+    getClientIdByToken,
+    expectedClientCount,
+    authTimeout,
+}: WaitForClientArguments<TServer>): Observable<SocketAndId<TClient>[]> {
+    return fromEvent<TClient | [TClient]>(server, 'connection').pipe(
+        map(args => (Array.isArray(args) ? args[0] : args)),
+        mergeMap(socket => negoriateClientToReady({ socket, authTimeout, getClientIdByToken })),
         scan((acc, socketAndId) => acc.concat(socketAndId), [] as SocketAndId<TClient>[]),
         first(socketsAndIds => socketsAndIds.length === expectedClientCount),
     );
@@ -113,6 +110,6 @@ enum SocketNegotiationState {
     AuthAndNotReady,
     AuthAndReady,
 }
-type SocketNegotiation = { state: SocketNegotiationState; id: null | string };
+type SocketNegotiation<T> = { state: SocketNegotiationState; id: null | string; socket: T };
 
 type ServerLike = NodeCompatibleEventEmitter | HasEventTargetAddRemove<any>;

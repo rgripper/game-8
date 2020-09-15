@@ -1434,6 +1434,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["pretty-format", "npm:25.5.0"]
           ],
           "linkType": "HARD",
+        }],
+        ["npm:26.0.13", {
+          "packageLocation": "./.yarn/cache/@types-jest-npm-26.0.13-bc5d533019-5476d59a99.zip/node_modules/@types/jest/",
+          "packageDependencies": [
+            ["@types/jest", "npm:26.0.13"],
+            ["jest-diff", "npm:25.5.0"],
+            ["pretty-format", "npm:25.5.0"]
+          ],
+          "linkType": "HARD",
         }]
       ]],
       ["@types/json-schema", [
@@ -10352,7 +10361,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./packages/sim-net/",
           "packageDependencies": [
             ["sim-net", "workspace:packages/sim-net"],
-            ["@types/jest", "npm:26.0.10"],
+            ["@types/jest", "npm:26.0.13"],
             ["@types/node", "npm:14.0.27"],
             ["@types/ws", "npm:7.2.6"],
             ["jest", "npm:26.4.0"],
