@@ -1,5 +1,5 @@
 import WebSocket from 'ws';
-import { lastValueFrom, NEVER } from 'rxjs';
+import { lastValueFrom } from 'rxjs';
 import { connectToServer } from './client';
 import { waitForClients } from './server';
 
@@ -21,8 +21,7 @@ describe('real sockets', () => {
                 getClientIdByToken: x => x,
                 expectedClientCount: 1,
                 authTimeout: 1000,
-                cancellationObservable: NEVER
-            })
+            }),
         ).then();
 
         const authToken = 'authToken';

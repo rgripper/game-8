@@ -1,8 +1,7 @@
-import { interval, lastValueFrom, NEVER, throwError, timer } from 'rxjs';
+import { lastValueFrom } from 'rxjs';
 import { AuthorizationPrefix, ReadyForFrames } from './control-commands';
 import { createSimpleServer, waitForClients } from './server';
 import { EventEmitter } from 'events';
-import { switchMapTo } from 'rxjs/operators';
 
 const createFakeClient = () => {
     // TODO: make return type obey WebSocketLike
@@ -27,44 +26,6 @@ describe('server', () => {
 
     xit('times out if socket did not auth in time', () => {});
 
-    it('is terminated by cancellationObservable', async () => {
-        const serverEmitter = new EventEmitter();
-        const server = createFakeServer(serverEmitter);
-        const terminator = throwError('Terminated!');
-
-        const waitForClientsPromise = lastValueFrom(
-            waitForClients({
-                server,
-                getClientIdByToken: x => x,
-                expectedClientCount: 3,
-                authTimeout: 1000,
-                cancellationObservable: terminator,
-            }),
-        );
-
-        await expect(waitForClientsPromise).rejects.toBe('Terminated!');
-    });
-
-    it('dummy', async () => {
-        const serverEmitter = new EventEmitter();
-        const server = createFakeServer(serverEmitter);
-        const terminator = throwError('Terminated!');
-
-        const delayedTerminator = interval(500).pipe(switchMapTo<never>(terminator));
-
-        const waitForClientsPromise = lastValueFrom(
-            waitForClients({
-                server,
-                getClientIdByToken: x => x,
-                expectedClientCount: 3,
-                authTimeout: 1000,
-                cancellationObservable: delayedTerminator,
-            }),
-        );
-
-        await expect(waitForClientsPromise).rejects.toBe('Terminated!');
-    });
-
     it('returns all sockets when count is reached', async () => {
         const serverEmitter = new EventEmitter();
         const server = createFakeServer(serverEmitter);
@@ -74,7 +35,6 @@ describe('server', () => {
                 getClientIdByToken: x => x,
                 expectedClientCount: 3,
                 authTimeout: 1000,
-                cancellationObservable: NEVER,
             }),
         );
 

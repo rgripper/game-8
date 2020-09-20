@@ -1223,6 +1223,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/jest@npm:^26.0.13":
+  version: 26.0.13
+  resolution: "@types/jest@npm:26.0.13"
+  dependencies:
+    jest-diff: ^25.2.1
+    pretty-format: ^25.2.1
+  checksum: 5476d59a99d1552d3ef99179d9ab8a59b24434c1990fda0836b8e6899a6a5fe898b62c0f0b8c9d3308b5c652cb95fca0b3b404028379b306f123a1e872413498
+  languageName: node
+  linkType: hard
+
 "@types/json-schema@npm:^7.0.4":
   version: 7.0.5
   resolution: "@types/json-schema@npm:7.0.5"
@@ -9226,7 +9236,7 @@ fsevents@^1.2.7:
   version: 0.0.0-use.local
   resolution: "sim-net@workspace:packages/sim-net"
   dependencies:
-    "@types/jest": ^26.0.10
+    "@types/jest": ^26.0.13
     "@types/node": ^14.0.27
     "@types/ws": ^7.2.6
     jest: ^26.4.0
