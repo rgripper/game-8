@@ -25,15 +25,20 @@ export async function createSimInRust(world_params: WorldParams): Promise<Sim> {
 
 async function main() {
     const argv = minimist(process.argv.slice(2));
-    const playersCount = argv['p'] || argv['players'] || 1;
+    const playerCount = parseInt(argv['p'] ?? argv['players']) || 1;
 
     const restartSubject = new Subject<undefined>();
 
+    const subscription = restartSubject.pipe(switchMap(() => startServer(playerCount))).subscribe();
     restartSubject.next(undefined);
-
-    console.log(`Server is running on ws://localhost:${serverPort} for ${playersCount} player(s)`);
-    startHttpServer(playersCount, restartSubject);
+    // process.on('SIGINT', () => subscription.unsubscribe());
+    // process.on('exit', () => {
+    //     console.log('unsubscribing');
+    //     subscription.unsubscribe();
+    // });
+    console.log(`Server is running on ws://localhost:${serverPort} for ${playerCount} player(s)`);
     console.log(`Links for the players: http://localhost:${httpServerPort}`);
+    startHttpServer(playerCount, restartSubject);
 
     // TODO: terminate with subscription.unsubscribe()
     // process.exit();
@@ -45,20 +50,22 @@ function createSeverObservable({ port }: { port: number }) {
         subscriber.next(server);
         return () => {
             server.close();
+            console.info('Websocket closed.');
         };
     });
 }
 
 function startServer(playersCount: number) {
     return createSeverObservable({ port: serverPort }).pipe(
-        switchMap(server =>
-            waitForClients({
+        switchMap(server => {
+            console.log(`WebSocket server is waiting for clients...`);
+            return waitForClients({
                 server,
                 getClientIdByToken: x => x,
                 expectedClientCount: playersCount,
                 authTimeout: 200,
-            }),
-        ),
+            });
+        }),
         switchMap(async clients => {
             console.log('Clients were received', clients);
             const simpleServer = createSimpleServer<SimCommand, Diff[]>(clients);
@@ -122,7 +129,7 @@ function startServer(playersCount: number) {
     );
 }
 
-async function startHttpServer(playersCount: number, restartSubject: Subject<undefined>) {
+function startHttpServer(playersCount: number, restartSubject: Subject<undefined>) {
     let indexPageText = '';
 
     indexPageText += '<!DOCTYPE html><html>';
@@ -131,7 +138,7 @@ async function startHttpServer(playersCount: number, restartSubject: Subject<und
     indexPageText += '<body>';
     indexPageText += '<ul>';
     for (let i = 1; i <= playersCount; i++) {
-        indexPageText += `<li><a href="http://localhost:9010/game?userId=${i}}">`;
+        indexPageText += `<li><a href="http://localhost:9010/game?userId=${i}">`;
         indexPageText += `Player ${i} link`;
         indexPageText += '</a></li>';
     }
@@ -142,16 +149,18 @@ async function startHttpServer(playersCount: number, restartSubject: Subject<und
 
     indexPageText += '</html>';
 
-    http.createServer(function (req, res) {
-        if (req.url === '/restart') {
-            console.log('restart event');
-            restartSubject.next(undefined);
-            return;
-        }
+    return http
+        .createServer(function (req, res) {
+            if (req.url === '/restart') {
+                console.log('restart event');
+                restartSubject.next(undefined);
+                return;
+            }
 
-        res.writeHead(200, { 'Content-Type': 'text/html' });
-        res.end(indexPageText);
-    }).listen(httpServerPort);
+            res.writeHead(200, { 'Content-Type': 'text/html' });
+            res.end(indexPageText);
+        })
+        .listen(httpServerPort);
 }
 
 main().catch(error => {
