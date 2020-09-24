@@ -74,7 +74,7 @@ function startServer(playersCount) {
             server,
             getClientIdByToken: x => x,
             expectedClientCount: playersCount,
-            authTimeout: 200,
+            authTimeout: 1000,
         });
     }), operators_1.switchMap(async (clients) => {
         console.log('Clients were received', clients);
@@ -112,7 +112,6 @@ function startServer(playersCount) {
             },
         ];
         const initDiffs = sim(initCommands.map(command => ({ command, player_id: null })));
-        console.log('Sending init diffs', initDiffs);
         simpleServer.sendFrame(initDiffs);
         const finalFrame = simpleServer.commands.pipe(operators_1.bufferTime(10), operators_1.tap(wrappedCommands => {
             const diffs = sim(wrappedCommands.map(sc => ({
@@ -120,7 +119,6 @@ function startServer(playersCount) {
                 player_id: parseInt(sc.socketId),
             })));
             if (diffs.length > 0) {
-                console.log('Sending update diffs', diffs);
                 simpleServer.sendFrame(diffs);
             }
         }), operators_1.last());

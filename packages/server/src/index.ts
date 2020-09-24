@@ -63,7 +63,7 @@ function startServer(playersCount: number) {
                 server,
                 getClientIdByToken: x => x,
                 expectedClientCount: playersCount,
-                authTimeout: 200,
+                authTimeout: 1000,
             });
         }),
         switchMap(async clients => {
@@ -104,7 +104,6 @@ function startServer(playersCount: number) {
             ];
 
             const initDiffs = sim(initCommands.map(command => ({ command, player_id: null } as OwnedCommandWrapper)));
-            console.log('Sending init diffs', initDiffs);
             simpleServer.sendFrame(initDiffs);
 
             const finalFrame = simpleServer.commands.pipe(
@@ -117,7 +116,6 @@ function startServer(playersCount: number) {
                         })),
                     );
                     if (diffs.length > 0) {
-                        console.log('Sending update diffs', diffs);
                         simpleServer.sendFrame(diffs);
                     }
                 }),
