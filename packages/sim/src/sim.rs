@@ -1,3 +1,4 @@
+use crate::world::Credit;
 use crate::world::EntityParams;
 use crate::affects::affect_by_entity;
 use crate::behaviours::copy_update_entity_by_process_payload;
@@ -61,6 +62,40 @@ pub fn update_world(
         .values()
         .map(|process| (process.id, process.entity_id))
         .collect();
+
+    let player_diffs: Vec<Diff> = world_state
+        .players
+        .values()
+        .map(|player| {
+            if player.credit.current_interval == 0 {
+                let new_credit = Credit {
+                    current: player.credit.current + 10,
+                    current_interval: player.credit.initial_interval,
+                    ..player.credit
+                };
+
+                return Diff::UpsertPlayer { player: Player {
+                    credit: new_credit,
+                    ..*player
+                }};
+            } else {
+                let new_credit = Credit {
+                    current_interval: player.credit.current_interval - 1,
+                    ..player.credit
+                };
+
+                return Diff::UpsertPlayer { player: Player {
+                    credit: new_credit,
+                    ..*player
+                }};
+            }
+        })
+        .collect();
+
+    for diff in player_diffs {
+        apply_diff_to_world(world_state, &diff); // apply diffs output by application of process to its entity
+        diffs.push(diff);
+    }
 
     for (process_id, entity_id) in pairs {
         let process_diffs = world_state
@@ -140,8 +175,8 @@ fn produce_diff_from_command(
             .values()
             .find(|p| p.payload.is_entity_shoot() && p.entity_id == *actor_id)
             .map(|p| Diff::DeleteProcess { id: p.id }),
-        SimCommand::AddEntity { entity_params } => Some(Diff::UpsertEntity { 
-            entity: Entity { 
+        SimCommand::AddEntity { entity_params } => Some(Diff::UpsertEntity {
+            entity: Entity {
                 id: gen_new_id(),
                 health: entity_params.health,
                 boundaries: entity_params.boundaries,
@@ -149,7 +184,7 @@ fn produce_diff_from_command(
                 model_type: entity_params.model_type,
                 behaviour_type: entity_params.behaviour_type,
                 player_id: entity_params.player_id
-            } 
+            }
         }),
         SimCommand::AddPlayer { player } => Some(Diff::UpsertPlayer { player: *player })
     }

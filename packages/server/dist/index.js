@@ -86,8 +86,8 @@ function startServer(playersCount) {
         };
     }), operators_1.switchMap(({ simpleServer, sim }) => {
         const initCommands = [
-            { type: 'AddPlayer', player: { id: 1 } },
-            { type: 'AddPlayer', player: { id: 2 } },
+            { type: 'AddPlayer', player: { id: 1, credit: { current: 100, current_interval: 100, initial_interval: 100 } } },
+            { type: 'AddPlayer', player: { id: 2, credit: { current: 100, current_interval: 100, initial_interval: 100 } } },
             {
                 type: 'AddEntity',
                 entity_params: {

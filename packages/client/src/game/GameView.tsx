@@ -102,11 +102,11 @@ function GameView() {
                     client.ready();
 
                     controlCommands$
-                        .pipe(
-                            tap(cmds => {
-                                console.log('cmds', cmds);
-                            }),
-                        )
+                        // .pipe(
+                        //     tap(cmds => {
+                        //         console.log('cmds', cmds);
+                        //     }),
+                        // )
                         .subscribe(command => client.sendCommand(command));
                 });
 

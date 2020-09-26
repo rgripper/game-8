@@ -4,9 +4,9 @@ import projectileImage from '../assets/Projectile.png';
 import * as PIXI from 'pixi.js';
 import { Observable, Subscriber, pipe } from 'rxjs';
 import { buffer, map, tap } from 'rxjs/operators';
-import { Diff, Entity, ModelType } from '../client-sim/sim';
+import { Diff, Entity, ModelType, Player } from '../client-sim/sim';
 
-const renderedEntities = new Map<number, RenderedEntity>();
+const renderedEntities = new Map<number, RenderedItem>();
 
 export function createRenderingPipe(app: PIXI.Application) {
     const frames$: Observable<void> = Observable.create((subscriber: Subscriber<void>) => {
@@ -34,12 +34,12 @@ function getImageByBehaviourType(entity: Entity): string {
     throw new Error(`Unknown entity.model_type '${entity.model_type}'`);
 }
 
-type RenderedEntity = {
+type RenderedItem = {
     container: PIXI.DisplayObject;
     main: PIXI.Sprite;
 };
 
-function createRenderedEntity(entity: Entity, app: PIXI.Application, image: string): RenderedEntity {
+function createRenderedEntity(entity: Entity, app: PIXI.Application, image: string): RenderedItem {
     const sprite = PIXI.Sprite.from(image);
     sprite.anchor.x = 0.5;
     sprite.anchor.y = 0.5;
@@ -68,9 +68,34 @@ function createRenderedEntity(entity: Entity, app: PIXI.Application, image: stri
     return renderedEntity;
 }
 
+function createRenderedPlayer(player: Player, app: PIXI.Application): RenderedItem {
+    const text = new PIXI.Text('', {
+        fontFamily: 'Arial',
+        fontSize: 24,
+        fill: 0xff1010,
+        align: 'center'
+    });
+
+    const container = new PIXI.Container();
+    container.addChild(text);
+    container.x = 500;
+    container.y = 10;
+
+    const renderedEntity = {
+        container,
+        main: text
+    };
+
+    app.stage.addChild(container);
+
+    renderedEntities.set(player.id, renderedEntity);
+
+    return renderedEntity;
+}
+
 export function renderDiffs(diffs: Diff[], app: PIXI.Application) {
     diffs.forEach(diff => {
-        if (diff.type !== 'UpsertEntity' && diff.type !== 'DeleteEntity') {
+        if (diff.type !== 'UpsertEntity' && diff.type !== 'DeleteEntity' && diff.type !== 'UpsertPlayer') {
             return;
         }
         switch (diff.type) {
@@ -88,6 +113,14 @@ export function renderDiffs(diffs: Diff[], app: PIXI.Application) {
                 const re = renderedEntities.get(diff.id)!;
                 app.stage.removeChild(re.container);
                 renderedEntities.delete(diff.id);
+                return;
+            }
+            case 'UpsertPlayer': {
+                const re = (
+                    renderedEntities.get(diff.player.id) ||
+                    createRenderedPlayer(diff.player, app)
+                ).main as PIXI.Text;
+                re.text = diff.player.credit.current.toString();
                 return;
             }
         }

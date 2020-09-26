@@ -20,6 +20,7 @@ export default function ({ worldState, children }: PropsWithChildren<{ worldStat
     return (
         <div>
             <div ref={childContainerRef}>{children}</div>
+            <div>{worldState.players.get(1)?.credit.current}</div>
             <InfoAtPosition worldState={worldState} position={position} />
             <WorldStateView worldState={worldState} />
 

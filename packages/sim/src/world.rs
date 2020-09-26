@@ -7,6 +7,13 @@ pub type ID = i32;
 pub type GenNewID = dyn Fn() -> ID;
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+pub struct Credit {
+    pub current: u32,
+    pub current_interval: u32,
+    pub initial_interval: u32
+}
+
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct Health {
     pub max: u32,
     pub current: u32,
@@ -49,6 +56,7 @@ pub struct Entity {
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct Player {
     pub id: ID,
+    pub credit: Credit
 }
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]

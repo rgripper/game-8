@@ -108,8 +108,15 @@ export type Entity = {
     player_id: ID;
 };
 
+export type Credit = {
+    current: number;
+    current_interval: number;
+    initial_interval: number;
+};
+
 export type Player = {
     id: ID;
+    credit: Credit;
 };
 
 export type Process = {
