@@ -7,8 +7,9 @@ import { buffer, map, tap } from 'rxjs/operators';
 import { Diff, Entity, ModelType, Player } from '../client-sim/sim';
 
 const renderedEntities = new Map<number, RenderedItem>();
+let renderedPlayer: RenderedItem | undefined;
 
-export function createRenderingPipe(app: PIXI.Application) {
+export function createRenderingPipe(app: PIXI.Application, currentPlayerId: number) {
     const frames$: Observable<void> = Observable.create((subscriber: Subscriber<void>) => {
         app.ticker.add(() => subscriber.next());
     });
@@ -17,7 +18,7 @@ export function createRenderingPipe(app: PIXI.Application) {
     return pipe(
         batchDiffBatchesPerFrame,
         collectDiffs,
-        tap(diffs => renderDiffs(diffs, app)),
+        tap(diffs => renderDiffs(diffs, app, currentPlayerId)),
     );
 }
 
@@ -69,7 +70,8 @@ function createRenderedEntity(entity: Entity, app: PIXI.Application, image: stri
 }
 
 function createRenderedPlayer(player: Player, app: PIXI.Application): RenderedItem {
-    const text = new PIXI.Text('', {
+    console.log("createRenderedPlayer");
+    const text = new PIXI.Text('sample text', {
         fontFamily: 'Arial',
         fontSize: 24,
         fill: 0xff1010,
@@ -78,7 +80,7 @@ function createRenderedPlayer(player: Player, app: PIXI.Application): RenderedIt
 
     const container = new PIXI.Container();
     container.addChild(text);
-    container.x = 500;
+    container.x = app.view.width - 50;
     container.y = 10;
 
     const renderedEntity = {
@@ -88,14 +90,15 @@ function createRenderedPlayer(player: Player, app: PIXI.Application): RenderedIt
 
     app.stage.addChild(container);
 
-    renderedEntities.set(player.id, renderedEntity);
-
     return renderedEntity;
 }
 
-export function renderDiffs(diffs: Diff[], app: PIXI.Application) {
+export function renderDiffs(diffs: Diff[], app: PIXI.Application, currentPlayerId: number) {
     diffs.forEach(diff => {
         if (diff.type !== 'UpsertEntity' && diff.type !== 'DeleteEntity' && diff.type !== 'UpsertPlayer') {
+            return;
+        }
+        if (diff.type === 'UpsertPlayer' && currentPlayerId !== diff.player.id) {
             return;
         }
         switch (diff.type) {
@@ -116,10 +119,10 @@ export function renderDiffs(diffs: Diff[], app: PIXI.Application) {
                 return;
             }
             case 'UpsertPlayer': {
-                const re = (
-                    renderedEntities.get(diff.player.id) ||
-                    createRenderedPlayer(diff.player, app)
-                ).main as PIXI.Text;
+                renderedPlayer = renderedPlayer ?? createRenderedPlayer(diff.player, app);
+                console.log(diff.player.credit.current);
+
+                const re = renderedPlayer.main as PIXI.Text;
                 re.text = diff.player.credit.current.toString();
                 return;
             }

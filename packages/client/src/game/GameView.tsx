@@ -91,7 +91,7 @@ function GameView() {
                 .then(client => {
                     subscription = client.frames
                         .pipe(
-                            createRenderingPipe(app),
+                            createRenderingPipe(app, player_id),
                             createDebuggingPipe(initialWorld, w => {
                                 setDebuggedWorld(w);
                                 world$.next(w);

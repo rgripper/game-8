@@ -74,20 +74,24 @@ pub fn update_world(
                     ..player.credit
                 };
 
-                return Diff::UpsertPlayer { player: Player {
-                    credit: new_credit,
-                    ..*player
-                }};
+                return Diff::UpsertPlayer {
+                    player: Player {
+                        credit: new_credit,
+                        ..*player
+                    }
+                };
             } else {
                 let new_credit = Credit {
                     current_interval: player.credit.current_interval - 1,
                     ..player.credit
                 };
 
-                return Diff::UpsertPlayer { player: Player {
-                    credit: new_credit,
-                    ..*player
-                }};
+                return Diff::UpsertPlayer {
+                    player: Player {
+                        credit: new_credit,
+                        ..*player
+                    }
+                };
             }
         })
         .collect();
