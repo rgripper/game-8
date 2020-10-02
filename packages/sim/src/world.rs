@@ -6,12 +6,59 @@ pub type ID = i32;
 
 pub type GenNewID = dyn Fn() -> ID;
 
+
+// trait Countdown {
+//     fn getCurrentCooldown(&mut self) -> u32;
+
+//     fn on_update(f: fn() -> ()) -> () {
+//         f();
+//     }
+
+//     fn tick(&mut self) -> () {
+//         self.getCurrentCooldown() - 1;
+//         if (
+//     }
+// }
+
+
+type Callback = fn();
+
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct Credit {
     pub current: u32,
     pub current_interval: u32,
-    pub initial_interval: u32
+    pub initial_interval: u32,
 }
+
+impl Credit {
+    pub callback: Callback;
+
+    pub fn tick(&mut self) {
+        self.current_interval -= 1;
+        if self.current_interval == 0 {
+            self.on_update();
+            self.current_interval = self.initial_interval;
+        }
+    }
+
+
+    pub fn on_update(&mut self) {
+        self.callback();
+    }
+
+    pub fn set_callback(&mut self, f: Callback) {
+        self.callback = f;
+    }
+}
+
+// impl Countdown for Credit {
+//     on_update () {
+
+//     },
+//     tick() {
+
+//     }
+// }
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct Health {
