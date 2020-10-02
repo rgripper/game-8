@@ -67,31 +67,16 @@ pub fn update_world(
         .players
         .values()
         .map(|player| {
-            if player.credit.current_interval == 0 {
-                let new_credit = Credit {
-                    current: player.credit.current + 10,
-                    current_interval: player.credit.initial_interval,
-                    ..player.credit
-                };
+            let updated_countdown = player.credit.tick();
 
-                return Diff::UpsertPlayer {
-                    player: Player {
-                        credit: new_credit,
-                        ..*player
-                    }
-                };
-            } else {
-                let new_credit = Credit {
-                    current_interval: player.credit.current_interval - 1,
-                    ..player.credit
-                };
-
-                return Diff::UpsertPlayer {
-                    player: Player {
-                        credit: new_credit,
-                        ..*player
-                    }
-                };
+            Diff::UpsertPlayer {
+                player: Player {
+                    credit: Credit {
+                        countdown: updated_countdown,
+                        value: if updated_countdown.hasYielded() { player.credit.value + 10 } else { player.credit.value }
+                    },
+                    ..*player
+                }
             }
         })
         .collect();
