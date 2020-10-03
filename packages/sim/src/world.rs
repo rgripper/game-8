@@ -14,14 +14,14 @@ pub struct Countdown {
 }
 
 impl Countdown {
-    pub fn tick(&self) -> Countdown {
+    pub fn next(&self) -> Countdown {
         Countdown {
             initial: self.initial,
             current: if self.current == 0 { self.initial } else { self.current - 1 }
         }
     }
 
-    pub fn hasYielded(&self) -> bool {
+    pub fn has_yielded(&self) -> bool {
        self.initial == 0
     }
 }

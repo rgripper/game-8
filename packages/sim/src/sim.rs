@@ -67,13 +67,13 @@ pub fn update_world(
         .players
         .values()
         .map(|player| {
-            let updated_countdown = player.credit.tick();
+            let updated_countdown = player.credit.countdown.next();
 
             Diff::UpsertPlayer {
                 player: Player {
                     credit: Credit {
                         countdown: updated_countdown,
-                        value: if updated_countdown.hasYielded() { player.credit.value + 10 } else { player.credit.value }
+                        value: if updated_countdown.has_yielded() { player.credit.value + 10 } else { player.credit.value }
                     },
                     ..*player
                 }
